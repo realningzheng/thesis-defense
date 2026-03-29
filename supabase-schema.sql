@@ -1,4 +1,9 @@
 -- Run this in your Supabase SQL Editor to set up the database
+-- Run Part 1 first, then Part 2
+
+-- ============================================
+-- PART 1: Core tables
+-- ============================================
 
 -- Threads table (each top-level question is a thread)
 create table threads (
@@ -41,3 +46,59 @@ create policy "Allow all on thread_debounce" on thread_debounce for all using (t
 
 -- Index for fast thread message lookups
 create index idx_messages_thread_id on messages(thread_id, created_at);
+
+-- ============================================
+-- PART 2: RAG vector store
+-- ============================================
+
+-- Enable the pgvector extension
+create extension if not exists vector;
+
+-- Dissertation chunks with embeddings
+create table dissertation_chunks (
+  id bigserial primary key,
+  chapter text not null,          -- e.g. 'mimosa', 'spica', 'intro', 'discussion'
+  section text,                   -- e.g. 'evaluation', 'system design', 'findings'
+  content text not null,          -- the actual text chunk
+  embedding vector(1536),         -- OpenAI text-embedding-3-small dimension
+  created_at timestamptz default now()
+);
+
+-- Enable RLS
+alter table dissertation_chunks enable row level security;
+create policy "Allow read on chunks" on dissertation_chunks for select using (true);
+create policy "Allow insert on chunks" on dissertation_chunks for insert with check (true);
+
+-- Index for fast similarity search
+create index idx_chunks_embedding on dissertation_chunks
+  using ivfflat (embedding vector_cosine_ops) with (lists = 20);
+
+-- Function to search similar chunks
+create or replace function match_chunks(
+  query_embedding vector(1536),
+  match_count int default 8,
+  match_threshold float default 0.3
+)
+returns table (
+  id bigint,
+  chapter text,
+  section text,
+  content text,
+  similarity float
+)
+language plpgsql
+as $$
+begin
+  return query
+  select
+    dc.id,
+    dc.chapter,
+    dc.section,
+    dc.content,
+    1 - (dc.embedding <=> query_embedding) as similarity
+  from dissertation_chunks dc
+  where 1 - (dc.embedding <=> query_embedding) > match_threshold
+  order by dc.embedding <=> query_embedding
+  limit match_count;
+end;
+$$;

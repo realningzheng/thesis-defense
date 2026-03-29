@@ -3,8 +3,10 @@ import {
   ExternalLink, ChevronDown, ChevronUp, ChevronRight, ChevronLeft,
   Eye, Brain, MessageSquare, AlertTriangle, Users, Zap,
   Mic, Camera, BookOpen, Layers, ArrowRight, Quote,
-  BarChart3, CheckCircle2, Lightbulb, Target, Workflow
+  BarChart3, CheckCircle2, Lightbulb, Target, Workflow, LogIn
 } from "lucide-react";
+import ChatRoom from "./ChatRoom";
+import Presence from "./Presence";
 
 /* ═══════════════════════════════════════════════════════════════
    CONSTANTS & THEME
@@ -1081,10 +1083,66 @@ const SECTIONS = [
   { id: "axes", label: "Future" },
   { id: "principles", label: "Principles" },
   { id: "conclusion", label: "Conclusion" },
+  { id: "qa", label: "Q&A" },
 ];
+
+/* ═══════════════════════════════════════════════════════════════
+   LOGIN SCREEN
+   ═══════════════════════════════════════════════════════════════ */
+function LoginScreen({ onLogin }) {
+  const [name, setName] = useState("");
+  return (
+    <div style={{
+      minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
+      fontFamily: "'Inter', -apple-system, sans-serif", background: "#fff",
+    }}>
+      <div style={{ textAlign: "center", maxWidth: 400, padding: 32 }}>
+        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 4, color: "#999", marginBottom: 16 }}>PHD DISSERTATION DEFENSE</div>
+        <h1 style={{ fontSize: 26, fontWeight: 700, color: "#1a1a2e", lineHeight: 1.3, marginBottom: 8 }}>
+          Designing Multimodal Human-AI Systems
+        </h1>
+        <div style={{ fontSize: 14, color: "#666", marginBottom: 32 }}>Zheng Ning &middot; University of Notre Dame</div>
+        <div style={{ marginBottom: 12, fontSize: 13, color: "#888" }}>Enter your name to join</div>
+        <div style={{ display: "flex", gap: 8 }}>
+          <input
+            value={name}
+            onChange={e => setName(e.target.value)}
+            onKeyDown={e => e.key === "Enter" && name.trim() && onLogin(name.trim())}
+            placeholder="Your name"
+            autoFocus
+            style={{
+              flex: 1, padding: "12px 16px", borderRadius: 10, border: "1.5px solid #e0e0e0",
+              fontSize: 14, outline: "none", fontFamily: "inherit",
+            }}
+          />
+          <button
+            onClick={() => name.trim() && onLogin(name.trim())}
+            disabled={!name.trim()}
+            style={{
+              padding: "12px 20px", borderRadius: 10, border: "none",
+              background: name.trim() ? "#2d2d2d" : "#ddd", color: "#fff",
+              fontSize: 14, fontWeight: 600, cursor: name.trim() ? "pointer" : "default",
+              display: "flex", alignItems: "center", gap: 6, transition: "all 0.2s",
+            }}
+          >
+            <LogIn size={16} /> Enter
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
 
 export default function App() {
   const [activeSection, setActiveSection] = useState("title");
+  const [userName, setUserName] = useState(() => {
+    try { return sessionStorage.getItem("defense_user") || ""; } catch { return ""; }
+  });
+
+  const handleLogin = (name) => {
+    setUserName(name);
+    try { sessionStorage.setItem("defense_user", name); } catch {}
+  };
 
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
@@ -1099,8 +1157,11 @@ export default function App() {
     document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
   };
 
+  if (!userName) return <LoginScreen onLogin={handleLogin} />;
+
   return (
     <div style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif", background: "#fff", color: "#1a1a2e" }}>
+      <Presence userName={userName} activeSection={activeSection} />
       <SlideNav sections={SECTIONS} activeId={activeSection} onNav={scrollTo} />
 
       <TitleSlide />
@@ -1154,8 +1215,16 @@ export default function App() {
         <ConclusionSlide />
       </Section>
 
+      <Section id="qa" label="Interactive" title="Questions & Discussion"
+        subtitle="Ask questions about the thesis — the bot 'Ning' will reply based on the dissertation content. Each question opens a thread. Follow-up replies are batched after a 1-minute pause.">
+        <ChatRoom userName={userName} />
+      </Section>
+
       <div style={{ padding: "32px 24px 48px", textAlign: "center", borderTop: "1px solid #e8e8e8" }}>
-        <div style={{ fontSize: 12, color: "#bbb" }}>Thesis Defense Interactive Visuals &middot; Zheng Ning &middot; University of Notre Dame</div>
+        <div style={{ fontSize: 12, color: "#bbb" }}>
+          Thesis Defense Interactive Visuals &middot; Zheng Ning &middot; University of Notre Dame
+          &nbsp;&middot;&nbsp; Logged in as <strong>{userName}</strong>
+        </div>
       </div>
     </div>
   );

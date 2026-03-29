@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { supabase } from "./supabase";
-import { Users } from "lucide-react";
+import { Users, MessageSquare } from "lucide-react";
 
 /* Assign a consistent color based on name */
 const NAME_COLORS = [
@@ -14,15 +14,23 @@ function nameColor(name) {
   return NAME_COLORS[Math.abs(hash) % NAME_COLORS.length];
 }
 
+function isPresenterName(name) {
+  const n = name.toLowerCase().trim();
+  return n === "ning" || n === "nz";
+}
+
 /* ─── Cursor component ─── */
-function RemoteCursor({ name, x, y, color }) {
+function RemoteCursor({ name, x, y, color, isPresenter }) {
+  const glowFilter = isPresenter
+    ? `drop-shadow(0 0 6px ${color}) drop-shadow(0 0 12px ${color}80)`
+    : `drop-shadow(0 1px 2px rgba(0,0,0,0.2))`;
   return (
     <div style={{
-      position: "fixed", left: x, top: y, pointerEvents: "none", zIndex: 9999,
+      position: "absolute", left: x, top: y, pointerEvents: "none", zIndex: 9999,
       transition: "left 0.1s linear, top 0.1s linear",
     }}>
       {/* Arrow cursor shape */}
-      <svg width="16" height="20" viewBox="0 0 16 20" style={{ filter: `drop-shadow(0 1px 2px rgba(0,0,0,0.2))` }}>
+      <svg width="16" height="20" viewBox="0 0 16 20" style={{ filter: glowFilter }}>
         <path d="M0 0 L0 16 L4.5 12 L8 20 L10.5 19 L7 11 L12 11 Z" fill={color} stroke="#fff" strokeWidth="1" />
       </svg>
       {/* Name label */}
@@ -31,7 +39,9 @@ function RemoteCursor({ name, x, y, color }) {
         background: color, color: "#fff",
         padding: "2px 8px", borderRadius: 4,
         fontSize: 10, fontWeight: 600, whiteSpace: "nowrap",
-        boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
+        boxShadow: isPresenter
+          ? `0 0 8px ${color}90, 0 1px 4px rgba(0,0,0,0.15)`
+          : "0 1px 4px rgba(0,0,0,0.15)",
       }}>
         {name}
       </div>
@@ -39,8 +49,8 @@ function RemoteCursor({ name, x, y, color }) {
   );
 }
 
-/* ─── Online users badge ─── */
-function OnlineBadge({ users, onClick }) {
+/* ─── Online users badge (also serves as chatroom entry point) ─── */
+function OnlineBadge({ users, onClick, unreadCount = 0 }) {
   return (
     <div
       onClick={onClick}
@@ -53,7 +63,6 @@ function OnlineBadge({ users, onClick }) {
         cursor: "pointer", transition: "all 0.2s",
       }}
     >
-      {/* Stacked avatars */}
       <div style={{ display: "flex" }}>
         {users.slice(0, 5).map((u, i) => (
           <div key={u.name + i} style={{
@@ -78,40 +87,20 @@ function OnlineBadge({ users, onClick }) {
         )}
       </div>
       <span style={{ fontSize: 12, fontWeight: 600, color: "#444" }}>{users.length} online</span>
-      <div style={{ width: 8, height: 8, borderRadius: "50%", background: "#4CAF50" }} />
-    </div>
-  );
-}
-
-/* ─── Online users panel ─── */
-function OnlinePanel({ users, isOpen, onClose }) {
-  if (!isOpen) return null;
-  return (
-    <div style={{
-      position: "fixed", bottom: 64, right: 20, zIndex: 999,
-      width: 220, maxHeight: 300, overflowY: "auto",
-      background: "#fff", border: "1px solid #e0e0e0", borderRadius: 12,
-      boxShadow: "0 4px 20px rgba(0,0,0,0.12)", padding: 12,
-    }}>
-      <div style={{ fontSize: 11, fontWeight: 700, color: "#999", letterSpacing: 1, marginBottom: 10 }}>ONLINE NOW</div>
-      {users.map((u, i) => (
-        <div key={u.name + i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "6px 0" }}>
-          <div style={{
-            width: 28, height: 28, borderRadius: "50%",
-            background: nameColor(u.name),
-            display: "flex", alignItems: "center", justifyContent: "center",
-            fontSize: 12, fontWeight: 700, color: "#fff",
-          }}>
-            {u.name[0].toUpperCase()}
-          </div>
-          <div>
-            <div style={{ fontSize: 13, fontWeight: 600, color: "#333" }}>{u.name}</div>
-            <div style={{ fontSize: 10, color: "#bbb" }}>
-              {u.section ? `Viewing: ${u.section}` : "Browsing"}
-            </div>
-          </div>
+      <div style={{ width: 1, height: 16, background: "#e0e0e0" }} />
+      <MessageSquare size={14} color="#888" />
+      {unreadCount > 0 && (
+        <div style={{
+          position: "absolute", top: -4, right: -4,
+          width: 20, height: 20, borderRadius: "50%",
+          background: "#e74c3c", color: "#fff",
+          fontSize: 10, fontWeight: 700,
+          display: "flex", alignItems: "center", justifyContent: "center",
+          border: "2px solid #fff",
+        }}>
+          {unreadCount > 9 ? "9+" : unreadCount}
         </div>
-      ))}
+      )}
     </div>
   );
 }
@@ -119,10 +108,9 @@ function OnlinePanel({ users, isOpen, onClose }) {
 /* ═══════════════════════════════════════
    MAIN PRESENCE COMPONENT
    ═══════════════════════════════════════ */
-export default function Presence({ userName, activeSection }) {
+export default function Presence({ userName, activeSection, showRemoteCursors = true }) {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [cursors, setCursors] = useState({});
-  const [showPanel, setShowPanel] = useState(false);
   const channelRef = useRef(null);
 
   useEffect(() => {
@@ -178,7 +166,7 @@ export default function Presence({ userName, activeSection }) {
       channelRef.current?.send({
         type: "broadcast",
         event: "cursor",
-        payload: { name: userName, x: e.clientX, y: e.clientY },
+        payload: { name: userName, x: e.pageX, y: e.pageY, isPresenter: isPresenterName(userName) },
       });
     };
 
@@ -205,16 +193,16 @@ export default function Presence({ userName, activeSection }) {
 
   return (
     <>
-      {/* Remote cursors */}
-      {Object.entries(cursors).map(([name, data]) => (
-        <RemoteCursor key={name} name={name} x={data.x} y={data.y} color={nameColor(name)} />
-      ))}
-
-      {/* Online badge */}
-      <OnlineBadge users={onlineUsers} onClick={() => setShowPanel(!showPanel)} />
-
-      {/* Online panel */}
-      <OnlinePanel users={onlineUsers} isOpen={showPanel} onClose={() => setShowPanel(false)} />
+      {showRemoteCursors && (
+        <div style={{
+          position: "absolute", top: 0, left: 0, width: "100%", height: 0,
+          overflow: "visible", pointerEvents: "none", zIndex: 9999,
+        }}>
+          {Object.entries(cursors).map(([name, data]) => (
+            <RemoteCursor key={name} name={name} x={data.x} y={data.y} color={nameColor(name)} isPresenter={data.isPresenter} />
+          ))}
+        </div>
+      )}
     </>
   );
 }

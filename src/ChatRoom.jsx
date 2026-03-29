@@ -1,12 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabase";
-import { MessageSquare, Send, ArrowLeft, ChevronRight, Bot, User, Clock, X, Minus } from "lucide-react";
+import { MessageSquare, Send, ArrowLeft, ChevronRight, Bot, User, Clock, X, Maximize2, PanelRight } from "lucide-react";
 
 const C = {
   charcoal: "#2d2d2d", gray: "#888", lightGray: "#f5f5f5", border: "#e0e0e0",
-  blue: "#3A7CA5", green: "#5A8F5C", botBg: "#f0f7ff",
-  sidebar: "#1a1a2e", sidebarHover: "#252540", sidebarActive: "#2f2f4a",
-  accent: "#3A7CA5",
+  blue: "#2980B9", green: "#27ae60", botBg: "rgba(245,245,245,0.6)",
+  sidebar: "#f0f0f0", sidebarHover: "rgba(0,0,0,0.06)", sidebarActive: "rgba(0,0,0,0.1)",
+  accent: "#2980B9",
 };
 
 /* ─── Helper: call bot API ─── */
@@ -63,20 +63,20 @@ function ThreadList({ threads, activeThreadId, onOpenThread, userName }) {
   return (
     <div style={{
       width: 220, background: C.sidebar, display: "flex", flexDirection: "column",
-      borderRight: "1px solid rgba(255,255,255,0.06)", flexShrink: 0,
+      borderRight: "1px solid #e0e0e0", flexShrink: 0,
     }}>
       {/* Header */}
-      <div style={{ padding: "14px 14px 10px", borderBottom: "1px solid rgba(255,255,255,0.06)" }}>
-        <div style={{ fontSize: 13, fontWeight: 700, color: "#fff", display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
+      <div style={{ padding: "14px 14px 10px", borderBottom: "1px solid #e0e0e0" }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: C.charcoal, display: "flex", alignItems: "center", gap: 6, marginBottom: 2 }}>
           <MessageSquare size={14} /> Thesis Q&A
         </div>
-        <div style={{ fontSize: 10, color: "rgba(255,255,255,0.4)" }}>{threads.length} thread{threads.length !== 1 ? "s" : ""}</div>
+        <div style={{ fontSize: 10, color: "#999" }}>{threads.length} thread{threads.length !== 1 ? "s" : ""}</div>
       </div>
 
       {/* Thread list */}
       <div style={{ flex: 1, overflowY: "auto", padding: "6px 6px" }}>
         {threads.length === 0 ? (
-          <div style={{ textAlign: "center", padding: "24px 8px", color: "rgba(255,255,255,0.25)", fontSize: 11 }}>
+          <div style={{ textAlign: "center", padding: "24px 8px", color: "#bbb", fontSize: 11 }}>
             No questions yet
           </div>
         ) : (
@@ -91,12 +91,12 @@ function ThreadList({ threads, activeThreadId, onOpenThread, userName }) {
               onMouseLeave={e => { if (activeThreadId !== t.id) e.currentTarget.style.background = "transparent"; }}
             >
               <div style={{
-                fontSize: 12, color: activeThreadId === t.id ? "#fff" : "rgba(255,255,255,0.7)",
+                fontSize: 12, color: C.charcoal,
                 lineHeight: 1.4, fontWeight: activeThreadId === t.id ? 600 : 400,
                 overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
               }}>{t.question}</div>
               <div style={{ display: "flex", gap: 6, marginTop: 3, alignItems: "center" }}>
-                <span style={{ fontSize: 10, color: "rgba(255,255,255,0.35)" }}>{t.user_name}</span>
+                <span style={{ fontSize: 10, color: "#999" }}>{t.user_name}</span>
                 {t.bot_replied && (
                   <span style={{ fontSize: 9, color: C.green, display: "flex", alignItems: "center", gap: 2 }}>
                     <Bot size={8} /> replied
@@ -109,7 +109,7 @@ function ThreadList({ threads, activeThreadId, onOpenThread, userName }) {
       </div>
 
       {/* New question input */}
-      <div style={{ padding: "8px 8px 10px", borderTop: "1px solid rgba(255,255,255,0.06)" }}>
+      <div style={{ padding: "8px 8px 10px", borderTop: "1px solid #e0e0e0" }}>
         <div style={{ display: "flex", gap: 4 }}>
           <input
             value={newQ}
@@ -118,18 +118,18 @@ function ThreadList({ threads, activeThreadId, onOpenThread, userName }) {
             placeholder="Ask a question..."
             style={{
               flex: 1, padding: "7px 10px", borderRadius: 6,
-              border: "1px solid rgba(255,255,255,0.1)", background: "rgba(255,255,255,0.06)",
+              border: "1px solid #ddd", background: "#fff",
               fontSize: 11, outline: "none", fontFamily: "inherit",
-              color: "#fff",
+              color: C.charcoal,
             }}
           />
           <button onClick={handlePost} disabled={!newQ.trim() || posting}
             style={{
               padding: "7px 10px", borderRadius: 6, border: "none",
-              background: newQ.trim() ? C.accent : "rgba(255,255,255,0.06)",
-              color: "#fff", cursor: newQ.trim() ? "pointer" : "default",
+              background: newQ.trim() ? C.accent : "#ddd",
+              color: newQ.trim() ? "#fff" : "#999",
+              cursor: newQ.trim() ? "pointer" : "default",
               display: "flex", alignItems: "center", transition: "all 0.15s",
-              opacity: newQ.trim() ? 1 : 0.4,
             }}>
             <Send size={12} />
           </button>
@@ -216,9 +216,9 @@ function MessagePanel({ thread, userName }) {
     return (
       <div style={{
         flex: 1, display: "flex", alignItems: "center", justifyContent: "center",
-        color: "#bbb", fontSize: 13, flexDirection: "column", gap: 8,
+        color: "rgba(0,0,0,0.3)", fontSize: 13, flexDirection: "column", gap: 8,
       }}>
-        <MessageSquare size={28} strokeWidth={1.2} color="#ddd" />
+        <MessageSquare size={28} strokeWidth={1.2} color="rgba(0,0,0,0.2)" />
         <div>Select a thread or ask a question</div>
       </div>
     );
@@ -228,7 +228,7 @@ function MessagePanel({ thread, userName }) {
     <div style={{ flex: 1, display: "flex", flexDirection: "column", minWidth: 0 }}>
       {/* Thread header */}
       <div style={{
-        padding: "12px 16px", borderBottom: "1px solid #eee",
+        padding: "12px 16px", borderBottom: "1px solid #e0e0e0",
         display: "flex", alignItems: "center", gap: 10, flexShrink: 0,
       }}>
         <div style={{ flex: 1, minWidth: 0 }}>
@@ -236,7 +236,7 @@ function MessagePanel({ thread, userName }) {
             fontSize: 13, fontWeight: 600, color: C.charcoal, lineHeight: 1.4,
             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap",
           }}>{thread.question}</div>
-          <div style={{ fontSize: 11, color: "#999", marginTop: 1 }}>
+          <div style={{ fontSize: 11, color: "rgba(0,0,0,0.4)", marginTop: 1 }}>
             <span style={{ color: C.blue, fontWeight: 600 }}>{thread.user_name}</span> &middot; {timeAgo(thread.created_at)}
           </div>
         </div>
@@ -245,7 +245,7 @@ function MessagePanel({ thread, userName }) {
       {/* Messages */}
       <div style={{ flex: 1, overflowY: "auto", padding: "12px 16px" }}>
         {messages.length === 0 && (
-          <div style={{ textAlign: "center", padding: 24, color: "#bbb", fontSize: 12 }}>
+          <div style={{ textAlign: "center", padding: 24, color: "rgba(0,0,0,0.3)", fontSize: 12 }}>
             <Clock size={16} style={{ marginBottom: 4 }} />
             <div>Ning is typing a response...</div>
           </div>
@@ -263,7 +263,7 @@ function MessagePanel({ thread, userName }) {
               <div style={{ display: "flex", gap: 6, alignItems: "center", marginBottom: 3 }}>
                 <span style={{ fontSize: 12, fontWeight: 700, color: m.is_bot ? C.green : C.charcoal }}>{m.user_name}</span>
                 {m.is_bot && <span style={{ fontSize: 9, background: `${C.green}15`, color: C.green, padding: "1px 5px", borderRadius: 3, fontWeight: 600 }}>BOT</span>}
-                <span style={{ fontSize: 10, color: "#bbb" }}>{timeAgo(m.created_at)}</span>
+                <span style={{ fontSize: 10, color: "rgba(0,0,0,0.35)" }}>{timeAgo(m.created_at)}</span>
               </div>
               <div style={{
                 fontSize: 13, color: "#333", lineHeight: 1.6,
@@ -278,11 +278,11 @@ function MessagePanel({ thread, userName }) {
       </div>
 
       {/* Reply input */}
-      <div style={{ padding: "10px 16px 12px", borderTop: "1px solid #eee", flexShrink: 0 }}>
+      <div style={{ padding: "10px 16px 12px", borderTop: "1px solid #e0e0e0", flexShrink: 0 }}>
         <div style={{
           display: "flex", gap: 8, padding: "6px 6px 6px 14px",
-          border: "1.5px solid #e0e0e0", borderRadius: 8,
-          background: "#fff", alignItems: "center",
+          border: "1.5px solid #ddd", borderRadius: 8,
+          background: "#fafafa", alignItems: "center",
           transition: "border-color 0.15s",
         }}>
           <input
@@ -299,14 +299,15 @@ function MessagePanel({ thread, userName }) {
           <button onClick={handlePost} disabled={!newMsg.trim() || posting}
             style={{
               padding: "6px 10px", borderRadius: 6, border: "none",
-              background: newMsg.trim() ? C.charcoal : "#eee",
-              color: "#fff", cursor: newMsg.trim() ? "pointer" : "default",
+              background: newMsg.trim() ? C.accent : "#ddd",
+              color: newMsg.trim() ? "#fff" : "#999",
+              cursor: newMsg.trim() ? "pointer" : "default",
               display: "flex", alignItems: "center", transition: "all 0.15s",
             }}>
             <Send size={13} />
           </button>
         </div>
-        <div style={{ fontSize: 10, color: "#bbb", marginTop: 4, paddingLeft: 2 }}>
+        <div style={{ fontSize: 10, color: "rgba(0,0,0,0.35)", marginTop: 4, paddingLeft: 2 }}>
           Ning replies to follow-ups after a 1-minute pause
         </div>
       </div>
@@ -358,29 +359,89 @@ function useDrag(initialPos) {
 }
 
 /* ═══════════════════════════════════════
-   FLOATING CHAT WIDGET
+   CHAT WIDGET (panel + float modes)
    ═══════════════════════════════════════ */
-export default function ChatRoom({ userName }) {
+export const PANEL_WIDTH = 520;
+
+export default function ChatRoom({ userName, isOpen, onClose, onUnreadChange, mode, onModeChange }) {
   const [threads, setThreads] = useState([]);
   const [activeThread, setActiveThread] = useState(null);
-  const [isOpen, setIsOpen] = useState(false);
-  const [isMinimized, setIsMinimized] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const prevThreadCountRef = useRef(0);
   const isOpenRef = useRef(isOpen);
-  const isMinimizedRef = useRef(isMinimized);
+
   useEffect(() => {
     isOpenRef.current = isOpen;
-    isMinimizedRef.current = isMinimized;
-  }, [isOpen, isMinimized]);
+  }, [isOpen]);
 
-  const { pos, onPointerDown, wasDragged } = useDrag({
-    x: typeof window !== "undefined" ? window.innerWidth - 76 : 0,
-    y: typeof window !== "undefined" ? window.innerHeight - 76 : 0,
-  });
-  const suppressClick = useRef(false);
+  useEffect(() => {
+    if (isOpen) setUnreadCount(0);
+  }, [isOpen]);
 
-  // Fetch threads and subscribe to realtime
+  useEffect(() => {
+    onUnreadChange?.(unreadCount);
+  }, [unreadCount, onUnreadChange]);
+
+  const [panelPos, setPanelPos] = useState(() => ({
+    x: typeof window !== "undefined" ? Math.max(0, window.innerWidth - 660) : 0,
+    y: typeof window !== "undefined" ? Math.max(0, window.innerHeight - 580) : 0,
+  }));
+  const [panelSize, setPanelSize] = useState({ w: 640, h: 520 });
+  const dragRef = useRef(null);
+
+  const onTitleBarPointerDown = (e) => {
+    if (mode !== "float") return;
+    if (e.target.closest("button, input, a")) return;
+    e.preventDefault();
+    dragRef.current = {
+      startX: e.clientX, startY: e.clientY,
+      startPosX: panelPos.x, startPosY: panelPos.y,
+    };
+    const onMove = (ev) => {
+      if (!dragRef.current) return;
+      setPanelPos({
+        x: Math.max(0, Math.min(window.innerWidth - 60, dragRef.current.startPosX + (ev.clientX - dragRef.current.startX))),
+        y: Math.max(0, Math.min(window.innerHeight - 40, dragRef.current.startPosY + (ev.clientY - dragRef.current.startY))),
+      });
+    };
+    const onUp = () => {
+      dragRef.current = null;
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  };
+
+  const MIN_W = 400, MIN_H = 340;
+
+  const onEdgePointerDown = (edge) => (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const start = { mx: e.clientX, my: e.clientY, x: panelPos.x, y: panelPos.y, w: panelSize.w, h: panelSize.h };
+    const onMove = (ev) => {
+      const dx = ev.clientX - start.mx;
+      const dy = ev.clientY - start.my;
+      let { x, y, w, h } = { ...start };
+      if (edge.includes("e")) w = Math.max(MIN_W, w + dx);
+      if (edge.includes("w")) { w = Math.max(MIN_W, w - dx); x = start.x + start.w - w; }
+      if (edge.includes("s")) h = Math.max(MIN_H, h + dy);
+      if (edge.includes("n")) { h = Math.max(MIN_H, h - dy); y = start.y + start.h - h; }
+      x = Math.max(0, x);
+      y = Math.max(0, y);
+      w = Math.min(w, window.innerWidth - x);
+      h = Math.min(h, window.innerHeight - y);
+      setPanelPos({ x, y });
+      setPanelSize({ w, h });
+    };
+    const onUp = () => {
+      window.removeEventListener("pointermove", onMove);
+      window.removeEventListener("pointerup", onUp);
+    };
+    window.addEventListener("pointermove", onMove);
+    window.addEventListener("pointerup", onUp);
+  };
+
   useEffect(() => {
     const fetchThreads = async () => {
       const { data } = await supabase
@@ -397,7 +458,7 @@ export default function ChatRoom({ userName }) {
       .on("postgres_changes", { event: "INSERT", schema: "public", table: "threads" },
         (payload) => {
           setThreads(prev => [payload.new, ...prev]);
-          if (!isOpenRef.current || isMinimizedRef.current) {
+          if (!isOpenRef.current) {
             setUnreadCount(c => c + 1);
           }
         }
@@ -412,166 +473,123 @@ export default function ChatRoom({ userName }) {
     return () => { supabase.removeChannel(channel); };
   }, []);
 
-  const handleOpen = () => {
-    setIsOpen(true);
-    setIsMinimized(false);
-    setUnreadCount(0);
-  };
+  if (!isOpen) return null;
 
-  const handleClose = () => {
-    setIsOpen(false);
-    setActiveThread(null);
-  };
-
-  const handleMinimize = () => {
-    setIsMinimized(true);
-  };
-
-  const handleRestore = () => {
-    setIsMinimized(false);
-    setUnreadCount(0);
-  };
-
-  // Floating Action Button (collapsed state)
-  if (!isOpen) {
-    return (
-      <div
-        onPointerDown={(e) => {
-          onPointerDown(e);
-          suppressClick.current = false;
-          const onUp = () => {
-            suppressClick.current = wasDragged();
-            window.removeEventListener("pointerup", onUp);
-          };
-          window.addEventListener("pointerup", onUp);
+  const titleBar = (
+    <div
+      onPointerDown={onTitleBarPointerDown}
+      style={{
+        display: "flex", alignItems: "center", padding: "0 4px 0 0",
+        background: "#f5f5f5", borderBottom: "1px solid #e0e0e0", flexShrink: 0,
+        cursor: mode === "float" ? "grab" : "default",
+        touchAction: "none", userSelect: "none",
+      }}
+    >
+      <div style={{ flex: 1, padding: "8px 12px", fontSize: 11, fontWeight: 600, color: C.charcoal, letterSpacing: 0.5 }}>
+        Thesis Q&A
+      </div>
+      <button
+        onClick={() => {
+          const next = mode === "panel" ? "float" : "panel";
+          if (next === "float") {
+            setPanelPos({
+              x: Math.max(0, window.innerWidth - 660),
+              y: Math.max(0, window.innerHeight - 580),
+            });
+            setPanelSize({ w: 640, h: 520 });
+          }
+          onModeChange?.(next);
         }}
-        onClick={() => { if (!suppressClick.current) handleOpen(); }}
-        aria-label="Open Q&A chat"
+        aria-label={mode === "panel" ? "Pop out to floating window" : "Dock to side panel"}
+        title={mode === "panel" ? "Pop out" : "Dock to side"}
         style={{
-          position: "fixed", left: pos.x, top: pos.y, zIndex: 900,
-          width: 52, height: 52, borderRadius: 16, border: "none",
-          background: C.sidebar, color: "#fff",
-          display: "flex", alignItems: "center", justifyContent: "center",
-          cursor: "grab", boxShadow: "0 4px 20px rgba(0,0,0,0.15), 0 1px 4px rgba(0,0,0,0.1)",
-          touchAction: "none", userSelect: "none",
+          background: "none", border: "none", color: "#aaa",
+          cursor: "pointer", padding: "8px 6px", display: "flex", alignItems: "center",
+          transition: "color 0.15s",
         }}
+        onMouseEnter={e => e.currentTarget.style.color = C.charcoal}
+        onMouseLeave={e => e.currentTarget.style.color = "#aaa"}
       >
-        <MessageSquare size={22} />
-        {unreadCount > 0 && (
-          <div style={{
-            position: "absolute", top: -4, right: -4,
-            width: 20, height: 20, borderRadius: "50%",
-            background: "#e74c3c", color: "#fff",
-            fontSize: 10, fontWeight: 700,
-            display: "flex", alignItems: "center", justifyContent: "center",
-            border: "2px solid #fff",
-          }}>
-            {unreadCount > 9 ? "9+" : unreadCount}
-          </div>
-        )}
+        {mode === "panel" ? <Maximize2 size={13} /> : <PanelRight size={13} />}
+      </button>
+      <button onClick={onClose} aria-label="Close chat"
+        style={{
+          background: "none", border: "none", color: "#aaa",
+          cursor: "pointer", padding: "8px 6px", display: "flex", alignItems: "center",
+          transition: "color 0.15s",
+        }}
+        onMouseEnter={e => e.currentTarget.style.color = C.charcoal}
+        onMouseLeave={e => e.currentTarget.style.color = "#aaa"}
+      >
+        <X size={14} />
+      </button>
+    </div>
+  );
+
+  const chatBody = (
+    <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
+      <ThreadList
+        threads={threads}
+        activeThreadId={activeThread?.id}
+        onOpenThread={setActiveThread}
+        userName={userName}
+      />
+      <MessagePanel
+        thread={activeThread}
+        userName={userName}
+      />
+    </div>
+  );
+
+  if (mode === "panel") {
+    return (
+      <div style={{
+        position: "fixed", top: 0, right: 0, zIndex: 900,
+        width: PANEL_WIDTH, height: "100vh",
+        background: "rgba(255,255,255,0.97)",
+        backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
+        borderLeft: "1px solid #e0e0e0",
+        boxShadow: "-4px 0 24px rgba(0,0,0,0.08)",
+        display: "flex", flexDirection: "column",
+        transform: "translateX(0)",
+        animation: "chatSlideIn 0.25s ease-out",
+      }}>
+        {titleBar}
+        {chatBody}
       </div>
     );
   }
 
-  // Minimized bar
-  if (isMinimized) {
-    return (
-      <div
-        onPointerDown={(e) => {
-          onPointerDown(e);
-          suppressClick.current = false;
-          const onUp = () => {
-            suppressClick.current = wasDragged();
-            window.removeEventListener("pointerup", onUp);
-          };
-          window.addEventListener("pointerup", onUp);
-        }}
-        onClick={() => { if (!suppressClick.current) handleRestore(); }}
-        style={{
-          position: "fixed", left: pos.x, top: pos.y, zIndex: 900,
-          width: 280, padding: "10px 14px", borderRadius: 12,
-          background: C.sidebar, color: "#fff", cursor: "grab",
-          boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-          display: "flex", alignItems: "center", gap: 8,
-          touchAction: "none", userSelect: "none",
-        }}
-      >
-        <MessageSquare size={14} />
-        <span style={{ fontSize: 12, fontWeight: 600, flex: 1 }}>Thesis Q&A</span>
-        {unreadCount > 0 && (
-          <span style={{
-            background: "#e74c3c", padding: "1px 6px", borderRadius: 8,
-            fontSize: 10, fontWeight: 700,
-          }}>{unreadCount}</span>
-        )}
-        <X size={14} style={{ opacity: 0.5 }} onClick={e => { e.stopPropagation(); handleClose(); }} />
-      </div>
-    );
-  }
-
-  // Full floating panel — anchor to bottom-left corner of the panel
-  const panelLeft = Math.max(0, Math.min(pos.x, window.innerWidth - 640));
-  const panelTop = Math.max(0, Math.min(pos.y - 520 + 52, window.innerHeight - 520));
+  const EDGE = 5, CORNER = 14;
+  const edgeHandles = [
+    { edge: "n",  style: { top: 0, left: CORNER, right: CORNER, height: EDGE, cursor: "ns-resize" } },
+    { edge: "s",  style: { bottom: 0, left: CORNER, right: CORNER, height: EDGE, cursor: "ns-resize" } },
+    { edge: "w",  style: { left: 0, top: CORNER, bottom: CORNER, width: EDGE, cursor: "ew-resize" } },
+    { edge: "e",  style: { right: 0, top: CORNER, bottom: CORNER, width: EDGE, cursor: "ew-resize" } },
+    { edge: "nw", style: { top: 0, left: 0, width: CORNER, height: CORNER, cursor: "nwse-resize" } },
+    { edge: "ne", style: { top: 0, right: 0, width: CORNER, height: CORNER, cursor: "nesw-resize" } },
+    { edge: "sw", style: { bottom: 0, left: 0, width: CORNER, height: CORNER, cursor: "nesw-resize" } },
+    { edge: "se", style: { bottom: 0, right: 0, width: CORNER, height: CORNER, cursor: "nwse-resize" } },
+  ];
 
   return (
     <div style={{
-      position: "fixed", left: panelLeft, top: panelTop, zIndex: 900,
-      width: 640, height: 520,
+      position: "fixed", left: panelPos.x, top: panelPos.y, zIndex: 900,
+      width: panelSize.w, height: panelSize.h,
       borderRadius: 14, overflow: "hidden",
-      background: "#fff",
-      boxShadow: "0 8px 40px rgba(0,0,0,0.15), 0 2px 8px rgba(0,0,0,0.08)",
+      background: "rgba(255,255,255,0.95)",
+      backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
+      border: "1px solid #e0e0e0",
+      boxShadow: "0 8px 40px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.05)",
       display: "flex", flexDirection: "column",
       animation: "chatWidgetIn 0.2s ease-out",
     }}>
-      {/* Title bar — drag handle */}
-      <div
-        onPointerDown={onPointerDown}
-        style={{
-          display: "flex", alignItems: "center", padding: "0 4px 0 0",
-          background: C.sidebar, flexShrink: 0,
-          cursor: "grab", touchAction: "none", userSelect: "none",
-        }}
-      >
-        <div style={{ flex: 1, padding: "8px 12px", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", letterSpacing: 0.5 }}>
-          Thesis Q&A
-        </div>
-        <button onClick={handleMinimize} aria-label="Minimize chat"
-          style={{
-            background: "none", border: "none", color: "rgba(255,255,255,0.5)",
-            cursor: "pointer", padding: "8px 6px", display: "flex", alignItems: "center",
-            transition: "color 0.15s",
-          }}
-          onMouseEnter={e => e.currentTarget.style.color = "#fff"}
-          onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.5)"}
-        >
-          <Minus size={14} />
-        </button>
-        <button onClick={handleClose} aria-label="Close chat"
-          style={{
-            background: "none", border: "none", color: "rgba(255,255,255,0.5)",
-            cursor: "pointer", padding: "8px 6px", display: "flex", alignItems: "center",
-            transition: "color 0.15s",
-          }}
-          onMouseEnter={e => e.currentTarget.style.color = "#fff"}
-          onMouseLeave={e => e.currentTarget.style.color = "rgba(255,255,255,0.5)"}
-        >
-          <X size={14} />
-        </button>
-      </div>
-
-      {/* Content: sidebar + messages */}
-      <div style={{ display: "flex", flex: 1, minHeight: 0 }}>
-        <ThreadList
-          threads={threads}
-          activeThreadId={activeThread?.id}
-          onOpenThread={setActiveThread}
-          userName={userName}
-        />
-        <MessagePanel
-          thread={activeThread}
-          userName={userName}
-        />
-      </div>
+      {titleBar}
+      {chatBody}
+      {edgeHandles.map(({ edge, style }) => (
+        <div key={edge} onPointerDown={onEdgePointerDown(edge)}
+          style={{ position: "absolute", touchAction: "none", zIndex: 10, ...style }} />
+      ))}
     </div>
   );
 }

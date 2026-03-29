@@ -34,6 +34,11 @@ body {
   to { opacity: 1; transform: translateY(0) scale(1); }
 }
 
+@keyframes chatSlideIn {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 6px;
@@ -48,6 +53,9 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: #bbb;
 }
+
+/* Hide horizontal scrollbar on poc carousel */
+.poc-scroll::-webkit-scrollbar { display: none; }
 
 /* Selection */
 ::selection {

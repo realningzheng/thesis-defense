@@ -1,11 +1,11 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import {
-  ExternalLink, ChevronDown, ChevronUp, ChevronRight, ChevronLeft,
+  ExternalLink,
   Eye, Brain, MessageSquare, AlertTriangle, Users, Zap,
   Mic, Camera, BookOpen, Layers, ArrowRight, Quote,
-  BarChart3, CheckCircle2, Lightbulb, Target, Workflow, LogIn
+  BarChart3, CheckCircle2, Lightbulb, Target, Workflow, LogIn, List
 } from "lucide-react";
-import ChatRoom from "./ChatRoom";
+import ChatRoom, { PANEL_WIDTH } from "./ChatRoom";
 import Presence from "./Presence";
 
 /* ═══════════════════════════════════════════════════════════════
@@ -27,30 +27,140 @@ const PROJECT_LINKS = {
 /* ═══════════════════════════════════════════════════════════════
    SHARED UI COMPONENTS
    ═══════════════════════════════════════════════════════════════ */
-function SlideNav({ sections, activeId, onNav }) {
+function OutlineSidebar({ sections, activeId, onNav }) {
+  const activeIdx = sections.findIndex(s => s.id === activeId);
+  return (
+    <nav style={{
+      position: "fixed", top: "50%", left: 12, transform: "translateY(-50%)",
+      zIndex: 100, padding: "10px 4px",
+    }}>
+      {sections.map((s, i) => {
+        const isActive = activeId === s.id;
+        const isPast = i < activeIdx;
+        const accentColor = s.color || C.charcoal;
+        return (
+          <div key={s.id}
+            onClick={() => onNav(s.id)}
+            style={{
+              display: "flex", alignItems: "center", gap: 6,
+              padding: s.depth === 0 ? "5px 8px" : "4px 8px 4px 20px",
+              borderRadius: 6, cursor: "pointer",
+              transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)",
+              transform: isActive ? "scale(1.08)" : "scale(1)",
+              transformOrigin: "left center",
+            }}
+          >
+            <div style={{
+              width: 4, height: 4, borderRadius: "50%", flexShrink: 0,
+              background: isActive ? accentColor : isPast ? "#bbb" : "#ddd",
+              transition: "all 0.3s",
+              boxShadow: isActive ? `0 0 6px ${accentColor}50` : "none",
+            }} />
+            <span style={{
+              fontSize: s.depth === 0 ? 11 : 10,
+              fontWeight: isActive ? 800 : s.depth === 0 ? 600 : 500,
+              color: isActive ? accentColor : isPast ? "#aaa" : "#999",
+              letterSpacing: isActive ? 0.3 : 0,
+              transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)",
+              whiteSpace: "nowrap",
+            }}>
+              {s.label}
+            </span>
+          </div>
+        );
+      })}
+    </nav>
+  );
+}
+
+function TopBar({ isPresenterUser, showRemoteCursors, onToggleCursors, chatOpen, onToggleChat, chatUnread, showOutline, onToggleOutline }) {
   return (
     <div style={{
       position: "sticky", top: 0, zIndex: 100,
       background: "rgba(255,255,255,0.95)", backdropFilter: "blur(12px)",
       borderBottom: "1px solid #e0e0e0",
     }}>
-      <div style={{ maxWidth: 1200, margin: "0 auto", display: "flex", alignItems: "center", padding: "10px 24px", gap: 12, flexWrap: "wrap" }}>
-        <span style={{ fontSize: 13, fontWeight: 700, color: C.charcoal, whiteSpace: "nowrap", letterSpacing: 0.5 }}>
-          PhD Defense &middot; Zheng Ning
-        </span>
-        <div style={{ width: 1, height: 20, background: "#ddd" }} />
-        <div style={{ display: "flex", gap: 2, flexWrap: "wrap", flex: 1 }}>
-          {sections.map(s => (
-            <span key={s.id}
-              onClick={() => onNav(s.id)}
+      <div style={{
+        display: "flex", alignItems: "center", padding: "8px 24px",
+        gap: 14,
+      }}>
+        <img src="/nd-logo.png" alt="University of Notre Dame" style={{ height: 60, objectFit: "contain" }} />
+        <div style={{ width: 1, height: 24, background: "#ddd", flexShrink: 0 }} />
+        <div style={{ flex: 1, minWidth: 0 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.charcoal, lineHeight: 1.3 }}>
+            Designing Multimodal Human-AI Systems to Enhance Human Cognitive Capability
+          </div>
+          <div style={{ fontSize: 10, color: "#999", letterSpacing: 0.5 }}>PhD Defense &middot; Zheng Ning</div>
+        </div>
+
+        <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
+          <div
+            onClick={onToggleOutline}
+            style={{
+              display: "flex", alignItems: "center", gap: 6,
+              padding: "6px 12px", borderRadius: 16,
+              background: showOutline ? `${C.charcoal}0A` : "transparent",
+              border: `1px solid ${showOutline ? C.charcoal + "30" : "#e0e0e0"}`,
+              cursor: "pointer", userSelect: "none", transition: "all 0.2s",
+            }}
+          >
+            <List size={14} color={showOutline ? C.charcoal : "#888"} />
+            <span style={{ fontSize: 11, fontWeight: 600, color: showOutline ? C.charcoal : "#888" }}>Outline</span>
+          </div>
+
+          {isPresenterUser && (
+            <div
+              onClick={onToggleCursors}
               style={{
-                padding: "4px 10px", borderRadius: 16, fontSize: 11, fontWeight: 500,
-                cursor: "pointer", transition: "all 0.2s",
-                color: activeId === s.id ? "#fff" : "#777",
-                background: activeId === s.id ? C.charcoal : "transparent",
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "6px 12px", borderRadius: 16,
+                background: showRemoteCursors ? `${C.charcoal}0A` : "transparent",
+                border: `1px solid ${showRemoteCursors ? C.charcoal + "30" : "#e0e0e0"}`,
+                cursor: "pointer", userSelect: "none", transition: "all 0.2s",
               }}
-            >{s.label}</span>
-          ))}
+            >
+              <Eye size={14} color={showRemoteCursors ? C.charcoal : "#aaa"} />
+              <div style={{
+                width: 28, height: 16, borderRadius: 8,
+                background: showRemoteCursors ? "#4CAF50" : "#ccc",
+                position: "relative", transition: "background 0.2s",
+              }}>
+                <div style={{
+                  width: 12, height: 12, borderRadius: "50%",
+                  background: "#fff", position: "absolute", top: 2,
+                  left: showRemoteCursors ? 14 : 2,
+                  transition: "left 0.2s", boxShadow: "0 1px 2px rgba(0,0,0,0.2)",
+                }} />
+              </div>
+            </div>
+          )}
+
+          <div
+            onClick={onToggleChat}
+            style={{
+              position: "relative",
+              display: "flex", alignItems: "center", gap: 6,
+              padding: "6px 12px", borderRadius: 16,
+              background: chatOpen ? `${C.charcoal}0A` : "transparent",
+              border: `1px solid ${chatOpen ? C.charcoal + "30" : "#e0e0e0"}`,
+              cursor: "pointer", userSelect: "none", transition: "all 0.2s",
+            }}
+          >
+            <MessageSquare size={14} color={chatOpen ? C.charcoal : "#888"} />
+            <span style={{ fontSize: 11, fontWeight: 600, color: chatOpen ? C.charcoal : "#888" }}>Q&A</span>
+            {chatUnread > 0 && (
+              <div style={{
+                position: "absolute", top: -4, right: -4,
+                minWidth: 18, height: 18, borderRadius: 9,
+                background: "#e74c3c", color: "#fff",
+                fontSize: 10, fontWeight: 700,
+                display: "flex", alignItems: "center", justifyContent: "center",
+                padding: "0 4px", border: "2px solid #fff",
+              }}>
+                {chatUnread > 9 ? "9+" : chatUnread}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>
@@ -59,7 +169,7 @@ function SlideNav({ sections, activeId, onNav }) {
 
 function Section({ id, label, title, subtitle, color, children }) {
   return (
-    <div id={id} style={{ minHeight: "100vh", padding: "88px 32px 60px", maxWidth: 1200, margin: "0 auto" }}>
+    <div id={id} style={{ minHeight: "100vh", padding: "72px 32px 60px", maxWidth: 1100, margin: "0 auto" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}>
         {color && <div style={{ width: 32, height: 3, background: color, borderRadius: 2 }} />}
         <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 3, textTransform: "uppercase", color: color || "#999" }}>{label}</span>
@@ -71,22 +181,44 @@ function Section({ id, label, title, subtitle, color, children }) {
   );
 }
 
-function Figure({ src, caption, maxW = 900 }) {
+function Figure({ src, caption, maxW = 900, video }) {
   const [zoomed, setZoomed] = useState(false);
   return (
     <>
       <figure style={{ margin: "24px 0", textAlign: "center" }}>
-        <img
-          src={src} alt={caption || ""}
-          onClick={() => setZoomed(true)}
-          style={{ maxWidth: "100%", width: maxW, borderRadius: 8, border: "1px solid #eee", cursor: "zoom-in", transition: "box-shadow 0.2s" }}
-        />
-        {caption && <figcaption style={{ fontSize: 11, color: "#999", marginTop: 8, fontStyle: "italic" }}>{caption}</figcaption>}
+        <div style={{ position: "relative", display: "inline-block" }}>
+          <img
+            src={src} alt={caption || ""}
+            onClick={() => setZoomed(true)}
+            style={{ maxWidth: "100%", width: maxW, borderRadius: 8, border: "1px solid #eee", cursor: video ? "pointer" : "zoom-in", transition: "box-shadow 0.2s" }}
+          />
+          {video && (
+            <div onClick={() => setZoomed(true)}
+              style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer" }}>
+              <div style={{ width: 64, height: 64, borderRadius: "50%", background: "rgba(0,0,0,0.55)", display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)", transition: "transform 0.2s" }}>
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="#fff"><polygon points="6,3 20,12 6,21" /></svg>
+              </div>
+            </div>
+          )}
+        </div>
+        {caption && <figcaption style={{ fontSize: 11, color: "#999", marginTop: 8, fontStyle: "italic" }}>{caption}{video && " — click to play video"}</figcaption>}
       </figure>
-      {zoomed && (
+      {zoomed && !video && (
         <div onClick={() => setZoomed(false)}
           style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "zoom-out", padding: 32 }}>
           <img src={src} alt={caption || ""} style={{ maxWidth: "95vw", maxHeight: "90vh", borderRadius: 8 }} />
+        </div>
+      )}
+      {zoomed && video && (
+        <div onClick={() => setZoomed(false)}
+          style={{ position: "fixed", inset: 0, zIndex: 1000, background: "rgba(0,0,0,0.9)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "default", padding: 32 }}>
+          <div onClick={e => e.stopPropagation()} style={{ position: "relative", maxWidth: "90vw", maxHeight: "85vh" }}>
+            <video src={video} controls autoPlay style={{ maxWidth: "90vw", maxHeight: "85vh", borderRadius: 8, outline: "none" }} />
+            <button onClick={() => setZoomed(false)}
+              style={{ position: "absolute", top: -16, right: -16, width: 36, height: 36, borderRadius: "50%", border: "none", background: "rgba(255,255,255,0.15)", color: "#fff", fontSize: 20, cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)" }}>
+              ✕
+            </button>
+          </div>
         </div>
       )}
     </>
@@ -121,11 +253,43 @@ function LinkBtn({ href, children, color = C.charcoal }) {
   );
 }
 
-function TabBar({ tabs, active, onChange, color }) {
+function TabBar({ tabs, color, prefix }) {
+  const [active, setActive] = useState(tabs[0]?.id || "");
+
+  useEffect(() => {
+    const ids = tabs.map(t => t.id);
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach(e => {
+        if (e.isIntersecting) {
+          const tabId = e.target.id.replace(`${prefix}-`, "");
+          if (ids.includes(tabId)) setActive(tabId);
+        }
+      });
+    }, { threshold: 0.15, rootMargin: "-100px 0px -50% 0px" });
+    ids.forEach(id => {
+      const el = document.getElementById(`${prefix}-${id}`);
+      if (el) observer.observe(el);
+    });
+    return () => observer.disconnect();
+  }, [prefix]);
+
+  const scrollTo = (id) => {
+    const el = document.getElementById(`${prefix}-${id}`);
+    if (el) {
+      const top = el.getBoundingClientRect().top + window.scrollY - 140;
+      window.scrollTo({ top, behavior: "smooth" });
+    }
+  };
+
   return (
-    <div style={{ display: "flex", gap: 2, marginBottom: 20, flexWrap: "wrap" }}>
+    <div style={{
+      display: "flex", gap: 2, marginBottom: 20, flexWrap: "wrap",
+      position: "sticky", top: 77, zIndex: 10,
+      background: "rgba(255,255,255,0.95)", backdropFilter: "blur(8px)",
+      padding: "10px 0", marginTop: -10,
+    }}>
       {tabs.map(t => (
-        <button key={t.id} onClick={() => onChange(t.id)}
+        <button key={t.id} onClick={() => scrollTo(t.id)}
           style={{
             padding: "7px 16px", borderRadius: 8, border: `1.5px solid ${active === t.id ? color : "#e0e0e0"}`,
             background: active === t.id ? `${color}10` : "#fff", color: active === t.id ? color : "#888",
@@ -207,10 +371,10 @@ function TitleSlide() {
       <div style={{ fontSize: 13, color: "#999", marginBottom: 40 }}>University of Notre Dame &middot; Department of Computer Science and Engineering</div>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
         {[
-          { name: "MIMOSA", color: C.mimosa, venue: "C&C '24" },
-          { name: "SPICA", color: C.spica, venue: "CHI '24" },
-          { name: "AROMA", color: C.aroma, venue: "UIST '25" },
-          { name: "TRANSMOGRIFIER", color: C.transmog, venue: "Under Review" },
+          { name: "MIMOSA", color: C.mimosa, venue: "" },
+          { name: "SPICA", color: C.spica, venue: "" },
+          { name: "AROMA", color: C.aroma, venue: "" },
+          { name: "TRANSMOGRIFIER", color: C.transmog, venue: "" },
         ].map(s => (
           <div key={s.name} style={{ padding: "8px 18px", borderRadius: 8, border: `1.5px solid ${s.color}30`, background: `${s.color}06` }}>
             <span style={{ fontSize: 13, fontWeight: 700, color: s.color }}>{s.name}</span>
@@ -223,10 +387,132 @@ function TitleSlide() {
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   PROBLEM SPACE DIAGRAM (replaces problem-space.png)
+   ═══════════════════════════════════════════════════════════════ */
+function ProblemSpaceDiagram() {
+  const [hoveredCell, setHoveredCell] = useState(null);
+
+  const scrollTo = (id) => {
+    document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+  };
+
+  const sys = {
+    mimosa: { name: "MIMOSA", color: C.mimosa },
+    spica: { name: "SPICA", color: C.spica },
+    aroma: { name: "AROMA", color: C.aroma },
+    transmog: { name: "TRANSMOGRIFIER", color: C.transmog },
+  };
+
+  const rows = [
+    {
+      label: "Application Areas",
+      bg: "#d5e8d1",
+      cells: [
+        { id: "app-video", text: ["Video Editing &", "Consumption"], systems: ["mimosa", "spica"] },
+        { id: "app-knowledge", text: ["Knowledge", "Work"], systems: ["transmog"] },
+        { id: "app-physical", text: ["Physical", "Tasks"], systems: ["aroma"] },
+      ],
+    },
+    {
+      label: "User group",
+      bg: "#d4e4f0",
+      cells: [
+        { id: "user-blv", text: ["Blind or Low-", "Vision Users"], systems: ["spica", "aroma"] },
+        { id: "user-nonexpert", text: ["Non-expert", "Users"], systems: ["mimosa", "transmog"] },
+        { id: "user-pro", text: ["Professional", "Users"], systems: ["transmog"] },
+      ],
+    },
+    {
+      label: "Data modality",
+      bg: "#f9d9c6",
+      cells: [
+        { id: "mod-audio", text: ["Audio"], systems: [] },
+        { id: "mod-visual", text: ["Visual"], systems: [] },
+        { id: "mod-text", text: ["Text"], systems: [] },
+      ],
+    },
+    {
+      label: "Theory",
+      bg: "#e8e8e8",
+      cells: [
+        { id: "th-disambig", text: ["Multimodal", "Disambiguation"], systems: [] },
+        { id: "th-interact", text: ["Multimodal", "Interaction"], systems: [] },
+        { id: "th-mix", text: ["Mix-Initiative", "Interface"], systems: [] },
+        { id: "th-direct", text: ["Direct-Agent", "Manipulation"], systems: [] },
+      ],
+    },
+  ];
+
+  return (
+    <div style={{ maxWidth: 750, margin: "0 auto" }}>
+      {rows.map((row, ri) => (
+        <div key={ri} style={{
+          display: "flex", alignItems: "center",
+          borderBottom: ri < rows.length - 1 ? "1.5px solid #888" : "none",
+          paddingBottom: ri < rows.length - 1 ? 22 : 0,
+          marginBottom: ri < rows.length - 1 ? 22 : 0,
+        }}>
+          <div style={{
+            width: 120, fontSize: 13, fontWeight: 600, color: "#666",
+            fontStyle: "italic", lineHeight: 1.4, flexShrink: 0,
+          }}>
+            {row.label}
+          </div>
+          <div style={{ display: "flex", gap: 14, flex: 1, flexWrap: "wrap", justifyContent: "center" }}>
+            {row.cells.map((cell) => {
+              const hovered = hoveredCell === cell.id;
+              return (
+                <div key={cell.id}
+                  onMouseEnter={() => setHoveredCell(cell.id)}
+                  onMouseLeave={() => setHoveredCell(null)}
+                  onClick={() => cell.systems.length === 1 && scrollTo(cell.systems[0])}
+                  style={{
+                    flex: `1 1 ${row.cells.length === 4 ? "110px" : "140px"}`,
+                    maxWidth: row.cells.length === 4 ? 170 : 200,
+                    background: row.bg,
+                    borderRadius: 12, padding: "14px 10px",
+                    display: "flex", flexDirection: "column", alignItems: "center",
+                    justifyContent: "center", textAlign: "center",
+                    transition: "transform 0.2s, box-shadow 0.2s",
+                    transform: hovered ? "translateY(-2px)" : "none",
+                    boxShadow: hovered ? "0 4px 12px rgba(0,0,0,0.12)" : "0 1px 3px rgba(0,0,0,0.04)",
+                    cursor: "pointer", minHeight: 58,
+                  }}>
+                  <div style={{ fontSize: 13, fontWeight: 600, color: "#444", lineHeight: 1.35 }}>
+                    {cell.text.map((l, i) => <span key={i}>{l}{i < cell.text.length - 1 && <br />}</span>)}
+                  </div>
+                  <div style={{ display: "flex", gap: 4, marginTop: 8, flexWrap: "wrap", justifyContent: "center" }}>
+                    {cell.systems.map(sId => (
+                      <span key={sId}
+                        onClick={(e) => { e.stopPropagation(); scrollTo(sId); }}
+                        style={{
+                          fontSize: 9, fontWeight: 700, color: "#fff",
+                          background: sys[sId].color,
+                          padding: "2px 7px", borderRadius: 4, cursor: "pointer",
+                          transition: "opacity 0.2s",
+                          opacity: hovered ? 1 : 0.65,
+                        }}>
+                        {sys[sId].name}
+                      </span>
+                    ))}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      ))}
+      <div style={{ textAlign: "center", fontSize: 11, color: "#999", marginTop: 14, fontStyle: "italic" }}>
+        Problem Space — Click system badges to navigate to corresponding sections
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
    SLIDE 1: MOTIVATION — COGNITION FLOW
    ═══════════════════════════════════════════════════════════════ */
 function CognitionFlow() {
-  const [activePhase, setActivePhase] = useState(null);
   const phases = [
     { id: "perception", label: "Perception", Icon: Eye, color: C.mimosa,
       channels: ["Sight", "Hearing", "Touch", "Smell", "Taste"],
@@ -244,37 +530,55 @@ function CognitionFlow() {
 
   return (
     <div>
-      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0, flexWrap: "wrap" }}>
-        {phases.map((p, i) => (
-          <div key={p.id} style={{ display: "flex", alignItems: "center" }}>
-            <div onClick={() => setActivePhase(activePhase === p.id ? null : p.id)}
-              style={{
-                width: 240, padding: "24px 20px", borderRadius: 12, cursor: "pointer",
-                border: `2px solid ${activePhase === p.id ? p.color : "#e0e0e0"}`,
-                background: activePhase === p.id ? `${p.color}08` : "#fff",
-                transition: "all 0.3s", transform: activePhase === p.id ? "scale(1.04)" : "scale(1)",
-              }}>
-              <div style={{ textAlign: "center", marginBottom: 8 }}><p.Icon size={32} color={p.color} strokeWidth={1.5} /></div>
-              <div style={{ fontSize: 15, fontWeight: 700, textAlign: "center", color: p.color }}>{p.label}</div>
-              <div style={{ fontSize: 11, color: "#888", textAlign: "center", marginTop: 6 }}>{p.channels.join(" · ")}</div>
-              {activePhase === p.id && (
+      <div style={{ position: "relative" }}>
+        <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "center", gap: 0, flexWrap: "wrap" }}>
+          {phases.map((p, i) => (
+            <div key={p.id} style={{ display: "flex", alignItems: "center" }}>
+              <div
+                style={{
+                  width: 240, padding: "24px 20px", borderRadius: 12,
+                  border: `2px solid ${p.color}40`,
+                  background: `${p.color}08`,
+                  transition: "all 0.3s",
+                }}>
+                <div style={{ textAlign: "center", marginBottom: 8 }}><p.Icon size={32} color={p.color} strokeWidth={1.5} /></div>
+                <div style={{ fontSize: 15, fontWeight: 700, textAlign: "center", color: p.color }}>{p.label}</div>
+                <div style={{ fontSize: 11, color: "#888", textAlign: "center", marginTop: 6 }}>{p.channels.join(" · ")}</div>
                 <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid #e0e0e0" }}>
                   <div style={{ fontSize: 12, color: p.color, fontStyle: "italic", lineHeight: 1.5, marginBottom: 8 }}>&ldquo;{p.challenge}&rdquo;</div>
                   <div style={{ fontSize: 11, color: "#555", lineHeight: 1.5 }}>{p.systems}</div>
                 </div>
+              </div>
+              {i < 2 && (
+                <div style={{ width: 48, display: "flex", alignItems: "center", justifyContent: "center", marginTop: 52 }}>
+                  <ArrowRight size={20} color="#ccc" />
+                </div>
               )}
             </div>
-            {i < 2 && (
-              <div style={{ width: 48, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                <ArrowRight size={20} color="#ccc" />
-              </div>
-            )}
-          </div>
-        ))}
+          ))}
+        </div>
+        {/* Feedback arrow from Expression back to Perception */}
+        <svg width="100%" height="56" viewBox="0 0 816 56" preserveAspectRatio="xMidYMin meet"
+          style={{ display: "block", margin: "0 auto", maxWidth: 816, overflow: "visible" }}>
+          <defs>
+            <marker id="feedback-arrow" viewBox="0 0 10 8" refX="9" refY="4"
+              markerWidth="8" markerHeight="6" orient="auto">
+              <path d="M0,0 L10,4 L0,8 Z" fill="#aaa" />
+            </marker>
+          </defs>
+          <path
+            d="M 696,4 C 696,48 120,48 120,4"
+            fill="none" stroke="#bbb" strokeWidth="1.8" strokeDasharray="6 4"
+            markerEnd="url(#feedback-arrow)"
+          />
+          <text x="408" y="48" textAnchor="middle"
+            style={{ fontSize: 11, fill: "#999", fontStyle: "italic" }}>
+            Feedback loop
+          </text>
+        </svg>
       </div>
-      <p style={{ textAlign: "center", fontSize: 12, color: "#aaa", marginTop: 20, fontStyle: "italic" }}>Click each phase to see how it maps to the four systems</p>
       <div style={{ marginTop: 32 }}>
-        <Figure src="/figures/problem-space.png" caption="Problem Space: Three recurring challenges across four systems" maxW={750} />
+        <ProblemSpaceDiagram />
       </div>
     </div>
   );
@@ -284,7 +588,6 @@ function CognitionFlow() {
    SLIDE 2: THESIS OVERVIEW
    ═══════════════════════════════════════════════════════════════ */
 function ThesisOverview() {
-  const [selectedSys, setSelectedSys] = useState(null);
   const systems = [
     { id: "mimosa", name: "MIMOSA", color: C.mimosa, venue: "C&C '24", domain: "Spatial Audio for Videos", users: "Amateur video creators",
       thesis: "Decomposing opaque pipelines enables error detection, repair, and creative augmentation without prior expertise.",
@@ -295,21 +598,20 @@ function ThesisOverview() {
     { id: "aroma", name: "AROMA", color: C.aroma, venue: "UIST '25", domain: "Non-Visual Cooking Assistance", users: "Blind or low-vision cooks",
       thesis: "Most effective support occurs when the system validates and extends users' own embodied perceptual inferences.",
       challenges: ["Error Handling", "Cognitive Load", "Diverse Capabilities"] },
-    { id: "transmog", name: "TRANSMOGRIFIER", color: C.transmog, venue: "Under Review", domain: "Knowledge Work", users: "Professional content creators",
+    { id: "transmog", name: "TRANSMOGRIFIER", color: C.transmog, venue: "", domain: "Knowledge Work", users: "Professional content creators",
       thesis: "Generative AI can manage semantic coherence across modalities when changes are kept inspectable and reversible.",
       challenges: ["Error Handling", "Cognitive Load", "Diverse Capabilities"] },
   ];
-  const sel = systems.find(s => s.id === selectedSys);
 
   return (
     <div>
       <div style={{ display: "flex", gap: 10, marginBottom: 24, flexWrap: "wrap" }}>
         {systems.map(s => (
-          <div key={s.id} onClick={() => setSelectedSys(selectedSys === s.id ? null : s.id)}
+          <div key={s.id}
             style={{
-              flex: "1 1 200px", padding: "18px 16px", borderRadius: 10, cursor: "pointer",
-              border: `2px solid ${selectedSys === s.id ? s.color : "#e0e0e0"}`,
-              background: selectedSys === s.id ? `${s.color}08` : "#fff",
+              flex: "1 1 200px", padding: "18px 16px", borderRadius: 10,
+              border: `2px solid ${s.color}40`,
+              background: `${s.color}08`,
               transition: "all 0.25s",
             }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
@@ -318,19 +620,17 @@ function ThesisOverview() {
             </div>
             <div style={{ fontSize: 12, color: "#555" }}>{s.domain}</div>
             <div style={{ fontSize: 11, color: "#999", marginTop: 4 }}>{s.users}</div>
+            <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${s.color}20` }}>
+              <div style={{ fontSize: 12, fontWeight: 600, color: s.color, marginBottom: 4 }}>Key Thesis Contribution</div>
+              <div style={{ fontSize: 12, color: "#333", lineHeight: 1.6, fontStyle: "italic" }}>{s.thesis}</div>
+              <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+                {PROJECT_LINKS[s.id]?.site && <LinkBtn href={PROJECT_LINKS[s.id].site} color={s.color}><ExternalLink size={11} /> Project</LinkBtn>}
+                {PROJECT_LINKS[s.id]?.paper && <LinkBtn href={PROJECT_LINKS[s.id].paper} color={s.color}><ExternalLink size={11} /> Paper</LinkBtn>}
+              </div>
+            </div>
           </div>
         ))}
       </div>
-      {sel && (
-        <div style={{ padding: 24, borderRadius: 12, border: `1.5px solid ${sel.color}30`, background: `${sel.color}04`, marginBottom: 20 }}>
-          <div style={{ fontSize: 14, fontWeight: 700, color: sel.color, marginBottom: 8 }}>{sel.name} — Key Thesis Contribution</div>
-          <div style={{ fontSize: 14, color: "#333", lineHeight: 1.7, fontStyle: "italic" }}>{sel.thesis}</div>
-          <div style={{ display: "flex", gap: 6, marginTop: 12 }}>
-            {PROJECT_LINKS[sel.id]?.site && <LinkBtn href={PROJECT_LINKS[sel.id].site} color={sel.color}><ExternalLink size={11} /> Project</LinkBtn>}
-            {PROJECT_LINKS[sel.id]?.paper && <LinkBtn href={PROJECT_LINKS[sel.id].paper} color={sel.color}><ExternalLink size={11} /> Paper</LinkBtn>}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
@@ -339,7 +639,6 @@ function ThesisOverview() {
    SLIDE 3-6: MIMOSA
    ═══════════════════════════════════════════════════════════════ */
 function MimosaSlides() {
-  const [tab, setTab] = useState("overview");
   const tabs = [
     { id: "overview", label: "Overview" },
     { id: "pipeline", label: "Pipeline & UI" },
@@ -349,10 +648,9 @@ function MimosaSlides() {
 
   return (
     <div>
-      <TabBar tabs={tabs} active={tab} onChange={setTab} color={C.mimosa} />
+      <TabBar tabs={tabs} color={C.mimosa} prefix="mimosa" />
 
-      {tab === "overview" && (
-        <div>
+      <div id="mimosa-overview" style={{ scrollMarginTop: 140 }}>
           <div style={{ fontSize: 14, color: "#444", lineHeight: 1.8, marginBottom: 24, maxWidth: 800 }}>
             Creating spatial audio normally requires specialized hardware (binaural microphones, ambisonic rigs) and professional
             expertise&mdash;yet millions of existing videos have only mono or stereo audio. End-to-end ML models can reconstruct
@@ -381,11 +679,11 @@ function MimosaSlides() {
               </div>
             ))}
           </div>
-        </div>
-      )}
+      </div>
 
-      {tab === "pipeline" && (
-        <div>
+      <div style={{ height: 1, background: "#e8e8e8", margin: "32px 0" }} />
+
+      <div id="mimosa-pipeline" style={{ scrollMarginTop: 140 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: C.charcoal, marginBottom: 12 }}>Backend Audiovisual Spatializing Pipeline</div>
           <div style={{ display: "flex", gap: 8, marginBottom: 24, flexWrap: "wrap" }}>
             {[
@@ -414,11 +712,11 @@ function MimosaSlides() {
             ))}
           </div>
           <Figure src="/figures/mimosa.png" caption="MIMOSA system interface: 2D overlay (left), 3D manipulation (center), audio controls (right)" />
-        </div>
-      )}
+      </div>
 
-      {tab === "results" && (
-        <div>
+      <div style={{ height: 1, background: "#e8e8e8", margin: "32px 0" }} />
+
+      <div id="mimosa-results" style={{ scrollMarginTop: 140 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: C.charcoal, marginBottom: 16 }}>Technical Evaluation: Immersion & Realism (8 evaluators, 6 videos, 7-point scale)</div>
           <Figure src="/figures/mimosa-barchart.png" caption="User-generated audio (UA) significantly outperforms all baselines in immersion (p < 0.001)" maxW={700} />
           <div style={{ display: "flex", gap: 8, marginBottom: 28, flexWrap: "wrap", marginTop: 16 }}>
@@ -469,11 +767,11 @@ function MimosaSlides() {
               ))}
             </div>
           </div>
-        </div>
-      )}
+      </div>
 
-      {tab === "findings" && (
-        <div>
+      <div style={{ height: 1, background: "#e8e8e8", margin: "32px 0" }} />
+
+      <div id="mimosa-findings" style={{ scrollMarginTop: 140 }}>
           {[
             { title: "F1: Decomposed pipeline democratizes spatial audio creation", detail: "All 15 participants (8 amateur creators, 7 non-creators) successfully completed tasks across 6 videos. The automated default (4.47/7 immersion) nearly matched professional recordings (4.51/7), while user-edited versions significantly outperformed all alternatives (6.03/7, p < 0.001)." },
             { title: "F2: Visual cues enable intuitive cross-modal error discovery", detail: "Colored dots on video frames reveal audio-visual misalignment instantly — a direct demonstration of the mutual disambiguation principle. P13: 'I easily found errors by just looking at the dot positions.' Amateurs discovered errors visually without needing any audio expertise." },
@@ -491,8 +789,7 @@ function MimosaSlides() {
             <ParticipantQuote text="Aligning the dots and the sounding objects in the video frame cost nearly no labor, so I felt really excited playing around with different settings" who="P11 — on creative exploration" color={C.mimosa} />
             <ParticipantQuote text="When I moved the Saxophone to my back, the sound was actually coming from that position" who="P3 — on spatial immersion" color={C.mimosa} />
           </div>
-        </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -501,7 +798,6 @@ function MimosaSlides() {
    SLIDE 7-10: SPICA
    ═══════════════════════════════════════════════════════════════ */
 function SpicaSlides() {
-  const [tab, setTab] = useState("overview");
   const tabs = [
     { id: "overview", label: "Overview" },
     { id: "pipeline", label: "Pipeline & UI" },
@@ -511,10 +807,9 @@ function SpicaSlides() {
 
   return (
     <div>
-      <TabBar tabs={tabs} active={tab} onChange={setTab} color={C.spica} />
+      <TabBar tabs={tabs} color={C.spica} prefix="spica" />
 
-      {tab === "overview" && (
-        <div>
+      <div id="spica-overview" style={{ scrollMarginTop: 140 }}>
           <div style={{ fontSize: 14, color: "#444", lineHeight: 1.8, marginBottom: 24, maxWidth: 800 }}>
             Video is essential for information, entertainment, and learning&mdash;yet it remains largely inaccessible to the
             2.2 billion people with visual impairments worldwide. Traditional audio descriptions (ADs) are passive and
@@ -543,11 +838,11 @@ function SpicaSlides() {
               </div>
             ))}
           </div>
-        </div>
-      )}
+      </div>
 
-      {tab === "pipeline" && (
-        <div>
+      <div style={{ height: 1, background: "#e8e8e8", margin: "32px 0" }} />
+
+      <div id="spica-pipeline" style={{ scrollMarginTop: 140 }}>
           <Figure src="/figures/spica-pipeline.png" caption="SPICA ML Pipeline: scene analysis → object segmentation → description generation → sound retrieval → depth estimation" maxW={800} />
           <div style={{ fontSize: 13, fontWeight: 700, color: C.charcoal, marginBottom: 12, marginTop: 24 }}>Five-Stage ML Pipeline</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 8, marginBottom: 24 }}>
@@ -578,11 +873,11 @@ function SpicaSlides() {
               <div style={{ fontSize: 12, color: "#555", lineHeight: 1.5 }}>Cycle through objects with arrow keys. Ensures comprehensive, deterministic coverage. Preferred by 4 of 6 participants who tried both.</div>
             </div>
           </div>
-        </div>
-      )}
+      </div>
 
-      {tab === "results" && (
-        <div>
+      <div style={{ height: 1, background: "#e8e8e8", margin: "32px 0" }} />
+
+      <div id="spica-results" style={{ scrollMarginTop: 140 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: C.charcoal, marginBottom: 12 }}>ML Pipeline Performance</div>
           <div style={{ display: "flex", gap: 12, marginBottom: 24, flexWrap: "wrap" }}>
             <StatCard label="OBJECT DETECTION PRECISION" value="0.939" sub="SD = 0.03" color={C.spica} />
@@ -618,11 +913,11 @@ function SpicaSlides() {
             <ComparisonBar label="Understanding" valueA={6.11} valueB={4.79} labelA="SPICA" labelB="Baseline" color={C.spica} pValue="0.033" />
             <ComparisonBar label="Immersion" valueA={6.25} valueB={4.29} labelA="SPICA" labelB="Baseline" color={C.spica} pValue="0.046" />
           </div>
-        </div>
-      )}
+      </div>
 
-      {tab === "findings" && (
-        <div>
+      <div style={{ height: 1, background: "#e8e8e8", margin: "32px 0" }} />
+
+      <div id="spica-findings" style={{ scrollMarginTop: 140 }}>
           {[
             { title: "F1: Audio descriptions anchor active exploration", detail: "61.4% of active frame explorations occurred within ±5 seconds of original ADs. P10: 'I watch video with ADs every day — those are frames worth exploring, given I have the power to do so.' Native ADs serve as importance signals that invite deeper investigation, not endpoints." },
             { title: "F2: Pausing serves three distinct cognitive purposes", detail: "Reflecting: digesting complex multi-event scenes (P4). Validating: checking adjacent frames to confirm narrative coherence — P9: 'What happened before they hugged? Did they have any eye contact?' Customizing: fast-forwarding past unengaging content to focus on personally relevant scenes (P3)." },
@@ -639,8 +934,7 @@ function SpicaSlides() {
           <ParticipantQuote text="I like when I touched a point at the screen and a spatial sound just coming from that direction...I felt it connected me with the scene in the video" who="P11 — on multimodal immersion" color={C.spica} />
           <ParticipantQuote text="The detailed information could fill in gaps that traditional audio descriptions miss, offering a richer viewing experience" who="P6 — on layered exploration" color={C.spica} />
           <ParticipantQuote text="Once it took all the color of the other objects away, it was a lot easier to find what I want" who="P14 — on color overlay for residual vision" color={C.spica} />
-        </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -649,7 +943,6 @@ function SpicaSlides() {
    SLIDE 11-14: AROMA
    ═══════════════════════════════════════════════════════════════ */
 function AromaSlides() {
-  const [tab, setTab] = useState("overview");
   const tabs = [
     { id: "overview", label: "Overview" },
     { id: "architecture", label: "Architecture" },
@@ -659,10 +952,9 @@ function AromaSlides() {
 
   return (
     <div>
-      <TabBar tabs={tabs} active={tab} onChange={setTab} color={C.aroma} />
+      <TabBar tabs={tabs} color={C.aroma} prefix="aroma" />
 
-      {tab === "overview" && (
-        <div>
+      <div id="aroma-overview" style={{ scrollMarginTop: 140 }}>
           <div style={{ fontSize: 14, color: "#444", lineHeight: 1.8, marginBottom: 24, maxWidth: 800 }}>
             Cooking demands continuous multi-sensory assessment&mdash;monitoring color changes, judging texture, tracking spatial
             layout&mdash;yet BLV users must accomplish all of this through touch, smell, sound, and spatial memory alone. Video
@@ -692,11 +984,11 @@ function AromaSlides() {
               </div>
             ))}
           </div>
-        </div>
-      )}
+      </div>
 
-      {tab === "architecture" && (
-        <div>
+      <div style={{ height: 1, background: "#e8e8e8", margin: "32px 0" }} />
+
+      <div id="aroma-architecture" style={{ scrollMarginTop: 140 }}>
           <Figure src="/figures/aroma-sys-arch.png" caption="AROMA System Architecture: video extraction, real-time visual agent, conversational agent, shared context" maxW={800} />
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 10, marginTop: 24 }}>
             {[
@@ -712,11 +1004,11 @@ function AromaSlides() {
             ))}
           </div>
           <Figure src="/figures/aroma-state-machine.png" caption="Response State Machine: 6 states governing interaction flow — food state, step, problem-solving, general, follow-ups" maxW={700} />
-        </div>
-      )}
+      </div>
 
-      {tab === "results" && (
-        <div>
+      <div style={{ height: 1, background: "#e8e8e8", margin: "32px 0" }} />
+
+      <div id="aroma-results" style={{ scrollMarginTop: 140 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: C.charcoal, marginBottom: 12 }}>System Performance (N=8 BLV)</div>
           <div style={{ overflowX: "auto", marginBottom: 24 }}>
             <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
@@ -759,11 +1051,11 @@ function AromaSlides() {
               <AnimatedBar label="Usefulness" value={5.13} color={C.aroma} sub="σ = 0.78" />
             </div>
           </div>
-        </div>
-      )}
+      </div>
 
-      {tab === "findings" && (
-        <div>
+      <div style={{ height: 1, background: "#e8e8e8", margin: "32px 0" }} />
+
+      <div id="aroma-findings" style={{ scrollMarginTop: 140 }}>
           {[
             { title: "Conversational interaction enables non-linear recipe access", detail: "Users broke free from linear video playback. P3: 'I could ask what ingredients I need for the next step without hearing back from the video again.' Users iteratively refined answers, requesting spatial descriptions 'from top left to bottom right' (P3) or 'in a clockwise direction' (P1)." },
             { title: "Proactive monitoring: powerful when precise, frustrating when misaligned", detail: "P6's system detected a wrong step — 'about to put miso paste before adding tofu.' P3 valued having 'an assistant to detect some, if not all, problems.' But interventions frustrated users during intentional deviations, highlighting the need for configurable proactivity." },
@@ -785,9 +1077,149 @@ function AromaSlides() {
               that enhances these well-practiced abilities. The most effective support validates and extends users&rsquo; own embodied perceptual inferences.
             </div>
           </div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   POC CAROUSEL (TRANSMOGRIFIER)
+   ═══════════════════════════════════════════════════════════════ */
+const POC_ITEMS = [
+  { title: "Crystallizer", img: "/figures/transmogrifier-poc-crystallizer.png", desc: "Organize unstructured meeting notes into multiple representational forms" },
+  { title: "Perspective", img: "/figures/transmogrifier-poc-perspective.png", desc: "View the same data from multiple perspectives simultaneously" },
+  { title: "Story Shaper", img: "/figures/transmogrifier-poc-storyshaper.png", desc: "Shape narratives across text, images, and charts" },
+  { title: "Living TLDR", img: "/figures/transmogrifier-poc-tldr.png", desc: "Auto-updating summaries that stay in sync with source" },
+  { title: "Learning Playground", img: "/figures/transmogrifier-poc-learning.png", desc: "Interactive learning with linked multi-modal representations" },
+];
+
+function PocCarousel() {
+  const [expanded, setExpanded] = useState(null);
+  const scrollRef = useRef(null);
+  const [canScrollL, setCanScrollL] = useState(false);
+  const [canScrollR, setCanScrollR] = useState(true);
+
+  const updateEdges = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollL(el.scrollLeft > 2);
+    setCanScrollR(el.scrollLeft < el.scrollWidth - el.clientWidth - 2);
+  }, []);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    updateEdges();
+    el.addEventListener("scroll", updateEdges, { passive: true });
+    window.addEventListener("resize", updateEdges);
+    return () => {
+      el.removeEventListener("scroll", updateEdges);
+      window.removeEventListener("resize", updateEdges);
+    };
+  }, [updateEdges]);
+
+  const scroll = useCallback((dir) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir * 220, behavior: "smooth" });
+  }, []);
+
+  useEffect(() => {
+    const onKey = (e) => {
+      if (expanded === null) return;
+      if (e.key === "Escape") setExpanded(null);
+      if (e.key === "ArrowLeft" && expanded > 0) setExpanded(expanded - 1);
+      if (e.key === "ArrowRight" && expanded < POC_ITEMS.length - 1) setExpanded(expanded + 1);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [expanded]);
+
+  const CARD_W = 200;
+
+  return (
+    <>
+      <div style={{ position: "relative" }}>
+        <div ref={scrollRef} className="poc-scroll"
+          style={{
+            display: "flex", gap: 12, overflowX: "auto", scrollSnapType: "x mandatory",
+            WebkitOverflowScrolling: "touch", paddingBottom: 6,
+            scrollbarWidth: "none", msOverflowStyle: "none",
+          }}>
+          {POC_ITEMS.map((poc, i) => (
+            <div key={poc.title} onClick={() => setExpanded(i)}
+              style={{
+                flex: `0 0 ${CARD_W}px`, width: CARD_W, scrollSnapAlign: "start",
+                borderRadius: 10, border: "1px solid #e8e8e8", overflow: "hidden",
+                background: "#fafafa", cursor: "pointer",
+                transition: "box-shadow .2s, transform .2s",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.boxShadow = "0 4px 16px rgba(0,0,0,.1)"; e.currentTarget.style.transform = "translateY(-2px)"; }}
+              onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "none"; }}>
+              <img src={poc.img} alt={poc.title}
+                style={{ width: "100%", height: 120, objectFit: "cover", display: "block" }} draggable={false} />
+              <div style={{ padding: "10px 12px" }}>
+                <div style={{ fontSize: 12, fontWeight: 700, color: C.transmog, marginBottom: 2 }}>{poc.title}</div>
+                <div style={{ fontSize: 11, color: "#666", lineHeight: 1.4 }}>{poc.desc}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {canScrollL && (
+          <button onClick={() => scroll(-1)}
+            style={{ position: "absolute", left: -6, top: "42%", transform: "translateY(-50%)",
+              width: 30, height: 30, borderRadius: "50%", border: "none",
+              background: "rgba(0,0,0,.5)", color: "#fff", fontSize: 16,
+              cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 2px 8px rgba(0,0,0,.2)" }}>
+            ‹
+          </button>
+        )}
+        {canScrollR && (
+          <button onClick={() => scroll(1)}
+            style={{ position: "absolute", right: -6, top: "42%", transform: "translateY(-50%)",
+              width: 30, height: 30, borderRadius: "50%", border: "none",
+              background: "rgba(0,0,0,.5)", color: "#fff", fontSize: 16,
+              cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 2px 8px rgba(0,0,0,.2)" }}>
+            ›
+          </button>
+        )}
+      </div>
+
+      {expanded !== null && (
+        <div onClick={() => setExpanded(null)}
+          style={{ position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,.85)",
+            display: "flex", alignItems: "center", justifyContent: "center", cursor: "zoom-out" }}>
+          <div style={{ position: "relative", maxWidth: "92vw", maxHeight: "92vh" }}
+               onClick={(e) => e.stopPropagation()}>
+            <img src={POC_ITEMS[expanded].img} alt={POC_ITEMS[expanded].title}
+              style={{ maxWidth: "92vw", maxHeight: "82vh", objectFit: "contain", borderRadius: 10 }} />
+            <div style={{ textAlign: "center", color: "#fff", padding: "12px 0 0" }}>
+              <div style={{ fontSize: 15, fontWeight: 700 }}>{POC_ITEMS[expanded].title}</div>
+              <div style={{ fontSize: 13, color: "#ccc", marginTop: 4, maxWidth: 500, margin: "4px auto 0" }}>{POC_ITEMS[expanded].desc}</div>
+            </div>
+            <button onClick={() => setExpanded(null)}
+              style={{ position: "absolute", top: -12, right: -12, width: 32, height: 32, borderRadius: "50%",
+                border: "none", background: "rgba(255,255,255,.9)", color: "#333", fontSize: 18,
+                cursor: "pointer", fontWeight: 700 }}>×</button>
+            {expanded > 0 && (
+              <button onClick={(e) => { e.stopPropagation(); setExpanded(expanded - 1); }}
+                style={{ position: "absolute", left: -50, top: "50%", transform: "translateY(-50%)",
+                  width: 40, height: 40, borderRadius: "50%", border: "none", background: "rgba(255,255,255,.15)",
+                  color: "#fff", fontSize: 22, cursor: "pointer" }}>‹</button>
+            )}
+            {expanded < POC_ITEMS.length - 1 && (
+              <button onClick={(e) => { e.stopPropagation(); setExpanded(expanded + 1); }}
+                style={{ position: "absolute", right: -50, top: "50%", transform: "translateY(-50%)",
+                  width: 40, height: 40, borderRadius: "50%", border: "none", background: "rgba(255,255,255,.15)",
+                  color: "#fff", fontSize: 22, cursor: "pointer" }}>›</button>
+            )}
+          </div>
         </div>
       )}
-    </div>
+    </>
   );
 }
 
@@ -795,7 +1227,6 @@ function AromaSlides() {
    SLIDE 15-18: TRANSMOGRIFIER
    ═══════════════════════════════════════════════════════════════ */
 function TransmogrifierSlides() {
-  const [tab, setTab] = useState("overview");
   const tabs = [
     { id: "overview", label: "Overview" },
     { id: "design", label: "Design Strategies" },
@@ -805,10 +1236,9 @@ function TransmogrifierSlides() {
 
   return (
     <div>
-      <TabBar tabs={tabs} active={tab} onChange={setTab} color={C.transmog} />
+      <TabBar tabs={tabs} color={C.transmog} prefix="transmog" />
 
-      {tab === "overview" && (
-        <div>
+      <div id="transmog-overview" style={{ scrollMarginTop: 140 }}>
           <div style={{ fontSize: 14, color: "#444", lineHeight: 1.8, marginBottom: 24, maxWidth: 800 }}>
             Knowledge workers constantly repurpose content across formats&mdash;notes become slides, reports spawn figures,
             data tables turn into charts&mdash;yet maintaining coherence across these representations is manual, error-prone,
@@ -825,11 +1255,11 @@ function TransmogrifierSlides() {
             <StatCard label="GPU" value="RTX 4090" sub="NVIDIA GeForce" color={C.transmog} />
           </div>
           <Figure src="/figures/transmogrifier-workflow.png" caption="TRANSMOGRIFIER: Interpretive linking across text, charts, and images with semantic propagation" />
-        </div>
-      )}
+      </div>
 
-      {tab === "design" && (
-        <div>
+      <div style={{ height: 1, background: "#e8e8e8", margin: "32px 0" }} />
+
+      <div id="transmog-design" style={{ scrollMarginTop: 140 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: C.charcoal, marginBottom: 16 }}>Three Design Strategies</div>
           {[
             { ds: "DS1", title: "Meta-descriptions as soft constraints", desc: "Each content block has a free-form meta-description (e.g., 'bullet points for presentation') that guides how content should be transformed into that representation.", color: C.transmog },
@@ -858,40 +1288,40 @@ function TransmogrifierSlides() {
               </div>
             ))}
           </div>
-        </div>
-      )}
+      </div>
 
-      {tab === "results" && (
-        <div>
+      <div style={{ height: 1, background: "#e8e8e8", margin: "32px 0" }} />
+
+      <div id="transmog-results" style={{ scrollMarginTop: 140 }}>
           <div style={{ fontSize: 13, fontWeight: 700, color: C.charcoal, marginBottom: 12 }}>Probe-to-Prototype Study: 6 Professionals, 22 Concepts</div>
           <div style={{ fontSize: 12, color: "#555", lineHeight: 1.7, marginBottom: 20 }}>
             Participants from diverse backgrounds (UX researcher, graphics designer, content designers, project manager, technical artist)
             explored the technology probe over two sessions (60 min + 30 min reflection, 5-7 days apart) and proposed 22 workflow concepts.
           </div>
-          <Figure src="/figures/transmogrifier-scenarios.png" caption="Selected proof-of-concept application scenarios proposed by participants" maxW={800} />
+          <Figure src="/figures/transmogrifier-scenarios.png" caption="Selected proof-of-concept application scenarios proposed by participants" maxW={800} video="/videos/collaborative-demo.mp4" />
           <div style={{ fontSize: 13, fontWeight: 700, color: C.charcoal, marginBottom: 12, marginTop: 20 }}>Proof-of-Concept Applications</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))", gap: 10 }}>
-            {[
-              { title: "Crystallizer", img: "/figures/transmogrifier-poc-crystallizer.png", desc: "Organize unstructured meeting notes into multiple representational forms" },
-              { title: "Perspective", img: "/figures/transmogrifier-poc-perspective.png", desc: "View the same data from multiple perspectives simultaneously" },
-              { title: "Story Shaper", img: "/figures/transmogrifier-poc-storyshaper.png", desc: "Shape narratives across text, images, and charts" },
-              { title: "Living TLDR", img: "/figures/transmogrifier-poc-tldr.png", desc: "Auto-updating summaries that stay in sync with source" },
-              { title: "Learning Playground", img: "/figures/transmogrifier-poc-learning.png", desc: "Interactive learning with linked multi-modal representations" },
-            ].map(poc => (
-              <div key={poc.title} style={{ borderRadius: 10, border: "1px solid #e8e8e8", overflow: "hidden" }}>
-                <img src={poc.img} alt={poc.title} style={{ width: "100%", height: 120, objectFit: "cover" }} />
-                <div style={{ padding: 12 }}>
-                  <div style={{ fontSize: 12, fontWeight: 700, color: C.transmog, marginBottom: 2 }}>{poc.title}</div>
-                  <div style={{ fontSize: 11, color: "#666", lineHeight: 1.4 }}>{poc.desc}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
+          <PocCarousel />
 
-      {tab === "findings" && (
-        <div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.charcoal, marginBottom: 12, marginTop: 28 }}>Demo: Explaining "Cat" with ASL and an Image</div>
+          <div style={{ borderRadius: 10, border: "1px solid #e8e8e8", overflow: "hidden", background: "#fafafa" }}>
+            <video
+              src="/videos/a11y.mp4"
+              controls
+              playsInline
+              preload="metadata"
+              style={{ width: "100%", display: "block" }}
+            />
+            <div style={{ padding: "10px 14px" }}>
+              <div style={{ fontSize: 12, color: "#666", lineHeight: 1.5 }}>
+                An accessibility scenario where the concept of "cat" is conveyed through American Sign Language alongside a visual image&mdash;demonstrating cross-modal representation for inclusive communication.
+              </div>
+            </div>
+          </div>
+      </div>
+
+      <div style={{ height: 1, background: "#e8e8e8", margin: "32px 0" }} />
+
+      <div id="transmog-findings" style={{ scrollMarginTop: 140 }}>
           {[
             { title: "Value concentrates in hard, cascading changes", detail: "P5: 'Nothing worse than when a number on a slide doesn't match the chart.' Most compelling use cases: maintaining cross-document number consistency, adapting content across audiences, propagating visual changes through illustration series — tasks that are hours of manual work and error-prone." },
             { title: "Bidirectional editing enables representation-native thinking", detail: "P4: 'Edit right away and focus on the content, not on how to talk to the system.' Users edited in whatever form fit the task — text, chart, or image — and the system maintained coherence. P5: 'You could see many different ways of seeing the same information.'" },
@@ -907,8 +1337,7 @@ function TransmogrifierSlides() {
           <ParticipantQuote text="Seeing text brought to life — especially valuable when creating alternatives would otherwise require substantial manual effort" who="P1 — on cross-modal transformation" color={C.transmog} />
           <ParticipantQuote text="Pretty unique... and super valuable — the ability to edit content across any representation and propagate changes" who="P4 — on bidirectional editing" color={C.transmog} />
           <ParticipantQuote text="Nothing worse than when a number on a slide doesn't match the chart" who="P5 — on cascading coherence" color={C.transmog} />
-        </div>
-      )}
+      </div>
     </div>
   );
 }
@@ -917,8 +1346,6 @@ function TransmogrifierSlides() {
    SLIDE 19: BRAIN & NERVOUS SYSTEM
    ═══════════════════════════════════════════════════════════════ */
 function BrainNervousSystem() {
-  const [activeSystem, setActiveSystem] = useState(null);
-
   const couplings = [
     { id: "mimosa", sys: "MIMOSA", desc: "Inspectable intermediate stages", color: C.mimosa,
       detail: "Pipeline outputs (detected objects, separated soundtracks, depth maps) exposed as editable UI elements. Visual dots on video frames let users catch and fix errors the model cannot detect in itself — each correction produces a multimodal trace of human spatial judgment." },
@@ -960,13 +1387,11 @@ function BrainNervousSystem() {
       <div style={{ fontSize: 12, fontWeight: 700, color: "#999", letterSpacing: 2, marginBottom: 10 }}>THE COUPLING LAYER — FOUR INSTANTIATIONS</div>
       <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 8 }}>
         {couplings.map(c => (
-          <div key={c.id} onClick={() => setActiveSystem(activeSystem === c.id ? null : c.id)}
-            style={{ padding: "14px 16px", borderRadius: 8, cursor: "pointer", borderLeft: `3px solid ${c.color}`, background: activeSystem === c.id ? `${c.color}08` : "#fafafa", transition: "all 0.25s" }}>
+          <div key={c.id}
+            style={{ padding: "14px 16px", borderRadius: 8, borderLeft: `3px solid ${c.color}`, background: `${c.color}08`, transition: "all 0.25s" }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: c.color }}>{c.sys}</div>
             <div style={{ fontSize: 11, color: "#666", marginTop: 2 }}>{c.desc}</div>
-            {activeSystem === c.id && (
-              <div style={{ fontSize: 11, color: "#444", marginTop: 8, paddingTop: 8, borderTop: "1px solid #e8e8e8", lineHeight: 1.5 }}>{c.detail}</div>
-            )}
+            <div style={{ fontSize: 11, color: "#444", marginTop: 8, paddingTop: 8, borderTop: "1px solid #e8e8e8", lineHeight: 1.5 }}>{c.detail}</div>
           </div>
         ))}
       </div>
@@ -993,74 +1418,105 @@ function BrainNervousSystem() {
    SLIDE 20: TWO AXES — FUTURE DIRECTIONS
    ═══════════════════════════════════════════════════════════════ */
 function TwoAxesPlot() {
-  const [hoveredDot, setHoveredDot] = useState(null);
-  const dots = [
-    { id: "mimosa", name: "MIMOSA", x: 20, y: 60, color: C.mimosa, xLabel: "Creative tool for novices", yLabel: "Interpretable pipeline + direct manipulation" },
-    { id: "spica", name: "SPICA", x: 40, y: 45, color: C.spica, xLabel: "BLV user perceptual data", yLabel: "Layered exploration + trust building" },
-    { id: "aroma", name: "AROMA", x: 65, y: 30, color: C.aroma, xLabel: "Embodied multimodal traces", yLabel: "Mixed-initiative + embodied grounding" },
-    { id: "transmog", name: "TRANSMOG.", x: 85, y: 18, color: C.transmog, xLabel: "Cross-modal thought traces", yLabel: "Semantic coherence + visual traceability" },
+  const dCol = "#2B7EC1";
+  const hCol = "#8B5E83";
+
+  const axisData = [
+    {
+      id: "data", Icon: BarChart3, color: dCol,
+      title: "Data-Driven",
+      subtitle: "Evaluate Technical Feasibility & Scalability",
+      question: "Can the system do it?",
+      aspects: [
+        "Automated benchmarks on standard datasets (precision, recall, BLEU)",
+        "Robustness and generalizability across diverse inputs",
+        "Latency, cost, and computational scalability",
+        "Model capability: what AI can perceive, reason, and generate",
+      ],
+      detail: <>Current training captures what environments look like and what people have written, but not what an environment <em>affords</em> for a situated agent. User corrections produce multimodal traces encoding <em>how</em> humans arrive at judgments, not just what the correct answer was &mdash; a richer data source for advancing personalized model intelligence.</>,
+    },
+    {
+      id: "human", Icon: Users, color: hCol,
+      title: "Human-Centered",
+      subtitle: "Evaluate from User Perspective & Situated Use",
+      question: "Does it serve human needs?",
+      aspects: [
+        "Usability and experience studies in real-world contexts",
+        "Cognitive load and working memory demands at point of use",
+        "Trust calibration, sense of agency, error recoverability",
+        "Bottom-up benchmarks starting from situated use cases",
+      ],
+      detail: <>Current benchmarks (MMLU, HumanEval, Chatbot Arena) measure model output statistically but omit subjective experience. Evaluation must start from situated use: the cook who must judge doneness before food burns, the viewer following a plot across scene transitions. Metrics should capture cognitive load, trust calibration, and mental model coherence at the point of use.</>,
+    },
   ];
-  const pW = 560, pH = 360, pL = 50, pB = 50, pT = 20, pR = 20;
-  const iW = pW - pL - pR, iH = pH - pT - pB;
+
+  const renderPanel = (ax, radius) => (
+    <div
+      style={{ flex: 1, padding: "22px 24px", borderRadius: radius,
+        background: `${ax.color}08`,
+        border: `1.5px solid ${ax.color}30`, borderRight: radius.startsWith("12") ? "none" : undefined, borderLeft: radius.startsWith("0") ? "none" : undefined,
+        transition: "all 0.25s" }}>
+      <ax.Icon size={26} color={ax.color} strokeWidth={1.4} />
+      <div style={{ fontSize: 15, fontWeight: 700, color: ax.color, marginTop: 8 }}>{ax.title}</div>
+      <div style={{ fontSize: 11, color: "#888", marginTop: 2, fontStyle: "italic" }}>{ax.subtitle}</div>
+      <div style={{ marginTop: 14, fontSize: 12, color: "#555", lineHeight: 1.8 }}>
+        {ax.aspects.map((item, j) => (
+          <div key={j} style={{ display: "flex", gap: 7, alignItems: "flex-start" }}>
+            <div style={{ width: 5, height: 5, borderRadius: "50%", background: ax.color, marginTop: 6, flexShrink: 0, opacity: 0.5 }} />
+            <span>{item}</span>
+          </div>
+        ))}
+      </div>
+      <div style={{ marginTop: 14, padding: "8px 12px", background: `${ax.color}0a`, borderRadius: 6, border: `1px solid ${ax.color}15` }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: ax.color }}>{ax.question}</div>
+      </div>
+      <div style={{ marginTop: 14, fontSize: 11, color: "#666", lineHeight: 1.6, paddingTop: 12, borderTop: `1px solid ${ax.color}20` }}>
+        {ax.detail}
+      </div>
+    </div>
+  );
 
   return (
-    <div style={{ display: "flex", gap: 32, alignItems: "flex-start", flexWrap: "wrap" }}>
-      <svg width={pW} height={pH} style={{ overflow: "visible", flexShrink: 0 }}>
-        {[0, 25, 50, 75, 100].map(v => (
-          <g key={v}><line x1={pL} y1={pT + iH * (1 - v/100)} x2={pL + iW} y2={pT + iH * (1 - v/100)} stroke="#f0f0f0" /><line x1={pL + iW * v/100} y1={pT} x2={pL + iW * v/100} y2={pT + iH} stroke="#f0f0f0" /></g>
-        ))}
-        <line x1={pL} y1={pT + iH} x2={pL + iW} y2={pT + iH} stroke="#2d2d2d" strokeWidth="1.5" />
-        <line x1={pL} y1={pT + iH} x2={pL} y2={pT} stroke="#2d2d2d" strokeWidth="1.5" />
-        <polygon points={`${pL + iW},${pT + iH - 4} ${pL + iW + 8},${pT + iH} ${pL + iW},${pT + iH + 4}`} fill="#2d2d2d" />
-        <polygon points={`${pL - 4},${pT} ${pL},${pT - 8} ${pL + 4},${pT}`} fill="#2d2d2d" />
-        <text x={pL + iW / 2} y={pH - 2} textAnchor="middle" fontSize="12" fontWeight="600" fill="#2d2d2d">Data-Driven Axis</text>
-        <text x={pL + iW / 2} y={pH + 14} textAnchor="middle" fontSize="10" fill="#555" fontStyle="italic">Personalized Model Intelligence</text>
-        <text x={12} y={pT + iH / 2} textAnchor="middle" fontSize="12" fontWeight="600" fill="#2d2d2d" transform={`rotate(-90, 12, ${pT + iH / 2})`}>Human-Centered Axis</text>
-        <line x1={pL + iW * dots[0].x / 100} y1={pT + iH * dots[0].y / 100} x2={pL + iW * dots[3].x / 100} y2={pT + iH * dots[3].y / 100} stroke="#ddd" strokeWidth="1.5" strokeDasharray="6,4" />
-        {dots.map(d => {
-          const cx = pL + iW * d.x / 100, cy = pT + iH * d.y / 100, hov = hoveredDot === d.id;
-          return (
-            <g key={d.id} onMouseEnter={() => setHoveredDot(d.id)} onMouseLeave={() => setHoveredDot(null)} style={{ cursor: "pointer" }}>
-              {hov && <circle cx={cx} cy={cy} r="20" fill="none" stroke={d.color} strokeWidth="1.5" opacity="0.3" />}
-              <circle cx={cx} cy={cy} r={hov ? 12 : 9} fill={d.color} style={{ transition: "all 0.2s" }} />
-              <text x={cx + 16} y={cy + 4} fontSize="11" fontWeight="600" fill={d.color}>{d.name}</text>
-            </g>
-          );
-        })}
-      </svg>
-      <div style={{ flex: 1, minWidth: 220 }}>
-        {hoveredDot ? (() => {
-          const d = dots.find(x => x.id === hoveredDot);
-          return (
-            <div style={{ padding: 20, borderRadius: 10, border: `1.5px solid ${d.color}30`, background: `${d.color}06` }}>
-              <div style={{ fontSize: 14, fontWeight: 700, color: d.color, marginBottom: 10 }}>{d.name}</div>
-              <div style={{ marginBottom: 10 }}><div style={{ fontSize: 10, fontWeight: 700, color: "#999", letterSpacing: 1 }}>DATA-DRIVEN</div><div style={{ fontSize: 12, color: "#444", marginTop: 2 }}>{d.xLabel}</div></div>
-              <div><div style={{ fontSize: 10, fontWeight: 700, color: "#999", letterSpacing: 1 }}>HUMAN-CENTERED</div><div style={{ fontSize: 12, color: "#444", marginTop: 2 }}>{d.yLabel}</div></div>
-            </div>
-          );
-        })() : (
-          <div>
-            <div style={{ padding: 20, color: "#bbb", fontSize: 13 }}>Hover over a system to see its position along both axes</div>
-            <div style={{ padding: 16, background: "#fafafa", borderRadius: 8, marginTop: 12 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: C.charcoal, marginBottom: 10 }}>Two Complementary Research Axes</div>
-              <div style={{ fontSize: 12, color: "#555", lineHeight: 1.7, marginBottom: 10 }}>
-                <strong>Data-Driven &mdash; Unlock Personalized Model Intelligence:</strong> Current AI trains on internet data (what people <em>wrote</em>),
-                but misses what environments <em>afford</em> for embodied agents. Every user correction &mdash; repositioning a sound source, rejecting a
-                fabricated description, overriding a cooking-state judgment &mdash; produces multimodal traces encoding <em>how</em> humans arrive at
-                judgments, not just what the correct answer was.
-              </div>
-              <div style={{ fontSize: 12, color: "#555", lineHeight: 1.7, marginBottom: 10 }}>
-                <strong>Human-Centered &mdash; Bottom-Up Evaluation:</strong> Current benchmarks (MMLU, HumanEval, Chatbot Arena) measure model output
-                statistically but omit subjective experience. SPICA&rsquo;s models scored well on benchmarks, yet temporal alignment mattered more to BLV
-                viewers. TRANSMOGRIFIER&rsquo;s correctness depended on preserving communicative intent &mdash; a judgment only users can render.
-                We need evaluation starting from situated use: the cook who must judge doneness before food burns, the viewer following a plot across scene transitions.
-              </div>
-              <div style={{ fontSize: 10, color: "#999", fontStyle: "italic", paddingTop: 8, borderTop: "1px solid #eee" }}>
-                Grounded in: Gibson (ecological affordances) &middot; Sweller (cognitive load) &middot; Dual coding theory &middot; Norman (gulfs of execution/evaluation)
-              </div>
-            </div>
-          </div>
-        )}
+    <div>
+      <div style={{ display: "flex", alignItems: "stretch" }}>
+        {renderPanel(axisData[0], "12px 0 0 12px")}
+
+        <div style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+          padding: "20px 14px", background: "#fff", minWidth: 76,
+          borderTop: "1.5px solid #e8e8e8", borderBottom: "1.5px solid #e8e8e8" }}>
+          <div style={{ fontSize: 9, fontWeight: 700, color: "#bbb", letterSpacing: 1.2, textTransform: "uppercase", textAlign: "center", marginBottom: 8 }}>Comple&shy;mentary</div>
+          <svg width="50" height="36" viewBox="0 0 50 36">
+            <line x1="4" y1="13" x2="42" y2="13" stroke={dCol} strokeWidth="1.5" />
+            <polygon points="40,9 48,13 40,17" fill={dCol} />
+            <line x1="46" y1="23" x2="8" y2="23" stroke={hCol} strokeWidth="1.5" />
+            <polygon points="10,19 2,23 10,27" fill={hCol} />
+          </svg>
+          <div style={{ fontSize: 8, color: "#bbb", textAlign: "center", marginTop: 6, lineHeight: 1.3 }}>Neither alone<br/>is sufficient</div>
+        </div>
+
+        {renderPanel(axisData[1], "0 12px 12px 0")}
+      </div>
+
+      {/* Convergence insight */}
+      <div style={{ marginTop: 20, padding: "16px 20px", background: "#fafafa", borderRadius: 10, border: "1px solid #e8e8e8" }}>
+        <div style={{ display: "flex", justifyContent: "center", marginBottom: 10 }}>
+          <svg width="180" height="22" viewBox="0 0 180 22">
+            <line x1="10" y1="3" x2="85" y2="17" stroke={dCol} strokeWidth="1.5" strokeDasharray="4,3" />
+            <line x1="170" y1="3" x2="95" y2="17" stroke={hCol} strokeWidth="1.5" strokeDasharray="4,3" />
+            <circle cx="90" cy="18" r="3" fill={C.charcoal} />
+          </svg>
+        </div>
+        <div style={{ fontSize: 13, fontWeight: 600, color: C.charcoal, textAlign: "center", marginBottom: 6 }}>
+          User-facing quality diverged from data-facing quality &mdash; optimizing one does not guarantee the other
+        </div>
+        <div style={{ fontSize: 11, color: "#777", textAlign: "center", lineHeight: 1.6, maxWidth: 620, margin: "0 auto" }}>
+          Building effective human-AI systems requires progress along <strong>both</strong> axes:
+          data-driven methods validate what the technology can achieve,
+          while human-centered methods ensure that achievement translates into real benefit at the point of use.
+        </div>
+        <div style={{ fontSize: 10, color: "#999", fontStyle: "italic", paddingTop: 10, marginTop: 10, borderTop: "1px solid #eee", textAlign: "center" }}>
+          Grounded in: Gibson (ecological affordances) &middot; Sweller (cognitive load) &middot; Dual coding theory &middot; Norman (gulfs of execution/evaluation)
+        </div>
       </div>
     </div>
   );
@@ -1070,7 +1526,6 @@ function TwoAxesPlot() {
    SLIDE 21: OVERARCHING DESIGN PRINCIPLES
    ═══════════════════════════════════════════════════════════════ */
 function OverarchingFlow() {
-  const [activeChallenge, setActiveChallenge] = useState(null);
   const challenges = [
     { id: "error", label: "Error Handling", color: C.red, Icon: AlertTriangle,
       systems: ["mimosa", "spica", "aroma", "transmog"],
@@ -1078,21 +1533,45 @@ function OverarchingFlow() {
         "Expose intermediate AI results as inspectable, editable elements — MIMOSA shows pipeline stages; TRANSMOGRIFIER shows change diffs with bold/strikethrough",
         "Support error discovery through cross-modal verification — MIMOSA uses visual dots for audio errors; SPICA lets users cross-check descriptions against audio context",
         "Error-handling cannot be modality-agnostic — it must account for the perceptual affordances of each output channel (visual, auditory, tactile)",
-      ] },
+      ],
+      nlqEvidence: {
+        finding: "Existing error-handling mechanisms showed no significant improvement in repair accuracy",
+        stat: "p = 0.82",
+        statLabel: "ANOVA",
+        detail: "Across 26 participants and 4 conditions (baseline, explanation-based, visualization, conversational dialog), average repair accuracy remained ~56% with no significant differences. Users struggled when \"none of the recommended options made sense\" (P15) or when errors spanned multiple locations (P24).",
+        implication: "Corroborates the thesis principle: exposing intermediate AI state for direct manipulation outperforms one-shot error-correction tools. The four systems each make AI internals inspectable rather than relying on external repair mechanisms.",
+      },
+    },
     { id: "cognitive", label: "Cognitive Load", color: C.orange, Icon: Brain,
       systems: ["mimosa", "spica", "aroma", "transmog"],
       implications: [
         "Coordinate channels to reduce mental effort — MIMOSA visualizes audio positions on video; SPICA layers information by temporal then spatial granularity",
         "Proactive coordination in high-stakes tasks — AROMA monitors cooking state and alerts before errors become irreversible (e.g., miso before tofu)",
         "Quality of cognition depends on coordination quality among representations — TRANSMOGRIFIER's semantic substrate maintains coherence as attention shifts",
-      ] },
+      ],
+      nlqEvidence: {
+        finding: "Attention misalignment between human and model is significantly correlated with AI errors",
+        stat: "p < 0.05",
+        statLabel: "ALL K VALUES",
+        detail: "When the NL2SQL model generated correct queries, human-model attention alignment was significantly higher than for erroneous queries (77.6% keyword coverage at K=12). Below 67% alignment, all queries were incorrect, i.e., low alignment reliably predicts failure.",
+        implication: "Supports the thesis argument that cognitive load arises from misalignment between human and AI representations. The four systems each coordinate multiple modalities to keep human attention aligned with AI state.",
+      },
+    },
     { id: "diverse", label: "Diverse Capabilities", color: C.blue, Icon: Users,
       systems: ["mimosa", "spica", "aroma", "transmog"],
       implications: [
         "Adapt to user's preferred sensory channels — SPICA offers touch, keyboard, spatial audio, and color overlays for different visual conditions",
         "Leverage embodied expertise as an alignment signal — AROMA's blind chef validates AI through touch and spatial memory rather than deferring to vision",
         "Multiple interaction strategies at varying precision — MIMOSA offers 2D dragging, 3D manipulation, and numerical input; TRANSMOGRIFIER supports text, chart, and image editing",
-      ] },
+      ],
+      nlqEvidence: {
+        finding: "Effectiveness of error-handling strategies varies by user expertise, with no one-size-fits-all solution",
+        stat: "3 levels",
+        statLabel: "EXPERTISE",
+        detail: "Novice users (9) preferred visualization and step-by-step explanations that lower the barrier to understanding. Experienced users (7) preferred direct editing and execution-result previews for efficient validation. Intermediate users (10) fell between. For easy queries, direct editing was significantly faster (p=0.04).",
+        implication: "Directly motivates the thesis principle of offering multiple interaction strategies at varying precision levels. Each system provides alternative modalities and granularities rather than a single fixed interface.",
+      },
+    },
   ];
   const systems = [
     { id: "mimosa", name: "MIMOSA", color: C.mimosa },
@@ -1100,49 +1579,262 @@ function OverarchingFlow() {
     { id: "aroma", name: "AROMA", color: C.aroma },
     { id: "transmog", name: "TRANSMOG.", color: C.transmog },
   ];
-  const ac = challenges.find(c => c.id === activeChallenge);
-
   return (
     <div>
       <div style={{ fontSize: 11, fontWeight: 700, color: "#999", letterSpacing: 2, marginBottom: 10 }}>CHALLENGES</div>
       <div style={{ display: "flex", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
         {challenges.map(ch => (
-          <div key={ch.id} onClick={() => setActiveChallenge(activeChallenge === ch.id ? null : ch.id)}
+          <div key={ch.id}
             style={{
-              flex: "1 1 160px", padding: "16px 14px", borderRadius: 10, cursor: "pointer", textAlign: "center",
-              border: `2px solid ${activeChallenge === ch.id ? ch.color : "#e0e0e0"}`,
-              background: activeChallenge === ch.id ? `${ch.color}08` : "#fff",
-              transition: "all 0.25s",
+              flex: "1 1 160px", padding: "16px 14px", borderRadius: 10, textAlign: "center",
+              border: `2px solid ${ch.color}40`,
+              background: `${ch.color}08`,
             }}>
-            <ch.Icon size={24} color={activeChallenge === ch.id ? ch.color : "#666"} strokeWidth={1.5} />
-            <div style={{ fontSize: 12, fontWeight: 700, color: activeChallenge === ch.id ? ch.color : "#444", marginTop: 6 }}>{ch.label}</div>
+            <ch.Icon size={24} color={ch.color} strokeWidth={1.5} />
+            <div style={{ fontSize: 12, fontWeight: 700, color: ch.color, marginTop: 6 }}>{ch.label}</div>
           </div>
         ))}
       </div>
       <div style={{ display: "flex", justifyContent: "center", marginBottom: 6 }}>
-        <svg width="200" height="20"><line x1="100" y1="0" x2="100" y2="14" stroke={ac ? ac.color : "#ddd"} strokeWidth="1.5" /><polygon points="96,12 100,20 104,12" fill={ac ? ac.color : "#ddd"} /></svg>
+        <svg width="200" height="20"><line x1="100" y1="0" x2="100" y2="14" stroke="#999" strokeWidth="1.5" /><polygon points="96,12 100,20 104,12" fill="#999" /></svg>
       </div>
       <div style={{ fontSize: 11, fontWeight: 700, color: "#999", letterSpacing: 2, marginBottom: 10 }}>SYSTEMS</div>
       <div style={{ display: "flex", gap: 8, marginBottom: 20, flexWrap: "wrap" }}>
         {systems.map(sys => (
           <div key={sys.id} style={{
             flex: "1 1 100px", padding: "12px 10px", borderRadius: 8, textAlign: "center",
-            border: `1.5px solid ${ac ? sys.color : "#e0e0e0"}`,
-            background: ac ? `${sys.color}10` : "#fafafa", transition: "all 0.3s",
+            border: `1.5px solid ${sys.color}`,
+            background: `${sys.color}10`,
           }}><div style={{ fontSize: 12, fontWeight: 700, color: sys.color }}>{sys.name}</div></div>
         ))}
       </div>
       <div style={{ display: "flex", justifyContent: "center", marginBottom: 6 }}>
-        <svg width="200" height="20"><line x1="100" y1="0" x2="100" y2="14" stroke={ac ? ac.color : "#ddd"} strokeWidth="1.5" /><polygon points="96,12 100,20 104,12" fill={ac ? ac.color : "#ddd"} /></svg>
+        <svg width="200" height="20"><line x1="100" y1="0" x2="100" y2="14" stroke="#999" strokeWidth="1.5" /><polygon points="96,12 100,20 104,12" fill="#999" /></svg>
       </div>
       <div style={{ fontSize: 11, fontWeight: 700, color: "#999", letterSpacing: 2, marginBottom: 10 }}>DESIGN IMPLICATIONS</div>
-      <div style={{ padding: 18, borderRadius: 10, border: "1px solid #e0e0e0", minHeight: 80, background: ac ? `${ac.color}04` : "#fafafa", borderLeft: ac ? `3px solid ${ac.color}` : "3px solid #e0e0e0", transition: "all 0.3s" }}>
-        {ac ? ac.implications.map((imp, i) => (
-          <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: i < ac.implications.length - 1 ? 10 : 0 }}>
-            <div style={{ width: 6, height: 6, borderRadius: "50%", background: ac.color, marginTop: 6, flexShrink: 0 }} />
-            <div style={{ fontSize: 13, color: "#333", lineHeight: 1.6 }}>{imp}</div>
+      <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+        {challenges.map(ch => (
+          <div key={ch.id} style={{ padding: 18, borderRadius: 10, border: "1px solid #e0e0e0", background: `${ch.color}04`, borderLeft: `3px solid ${ch.color}` }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: ch.color, marginBottom: 10 }}>{ch.label}</div>
+            {ch.implications.map((imp, i) => (
+              <div key={i} style={{ display: "flex", gap: 10, alignItems: "flex-start", marginBottom: i < ch.implications.length - 1 ? 10 : 0 }}>
+                <div style={{ width: 6, height: 6, borderRadius: "50%", background: ch.color, marginTop: 6, flexShrink: 0 }} />
+                <div style={{ fontSize: 13, color: "#333", lineHeight: 1.6 }}>{imp}</div>
+              </div>
+            ))}
           </div>
-        )) : <div style={{ fontSize: 13, color: "#bbb", textAlign: "center" }}>Click a challenge to trace it through systems to design implications</div>}
+        ))}
+      </div>
+
+      {/* ── Empirical Grounding: NLQ Study ── */}
+      <NLQEvidencePanel challenges={challenges} />
+    </div>
+  );
+}
+
+/* ── NLQ Empirical Grounding sub-component ── */
+function NLQEvidencePanel({ challenges }) {
+  const alignmentData = [
+    { k: 3, correct: 0.36, incorrect: 0.24 },
+    { k: 6, correct: 0.54, incorrect: 0.36 },
+    { k: 9, correct: 0.72, incorrect: 0.56 },
+    { k: 12, correct: 0.82, incorrect: 0.70 },
+    { k: 15, correct: 0.89, incorrect: 0.79 },
+  ];
+  const conditionData = [
+    { label: "Baseline", acc: 0.55 },
+    { label: "Explanation", acc: 0.56 },
+    { label: "Visualization", acc: 0.60 },
+    { label: "Conversational", acc: 0.53 },
+  ];
+
+  const vizByChallenge = {
+    cognitive: (
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1, color: "#999", marginBottom: 8 }}>
+          ATTENTION ALIGNMENT: CORRECT vs. INCORRECT QUERIES
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+          {alignmentData.map(d => (
+            <div key={d.k} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ fontSize: 10, color: "#999", width: 36, textAlign: "right" }}>K={d.k}</div>
+              <div style={{ flex: 1, display: "flex", gap: 3, alignItems: "center" }}>
+                <div style={{ height: 10, borderRadius: 3, background: "#6ab7e8", width: `${d.correct * 100}%`, transition: "width 0.6s ease" }} />
+                <span style={{ fontSize: 9, color: "#6ab7e8", fontWeight: 600, whiteSpace: "nowrap" }}>{Math.round(d.correct * 100)}%</span>
+              </div>
+              <div style={{ flex: 1, display: "flex", gap: 3, alignItems: "center" }}>
+                <div style={{ height: 10, borderRadius: 3, background: "#f08080", width: `${d.incorrect * 100}%`, transition: "width 0.6s ease" }} />
+                <span style={{ fontSize: 9, color: "#f08080", fontWeight: 600, whiteSpace: "nowrap" }}>{Math.round(d.incorrect * 100)}%</span>
+              </div>
+            </div>
+          ))}
+        </div>
+        <div style={{ display: "flex", gap: 16, marginTop: 6 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <div style={{ width: 8, height: 8, borderRadius: 2, background: "#6ab7e8" }} />
+            <span style={{ fontSize: 10, color: "#888" }}>Correct queries</span>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 4 }}>
+            <div style={{ width: 8, height: 8, borderRadius: 2, background: "#f08080" }} />
+            <span style={{ fontSize: 10, color: "#888" }}>Incorrect queries</span>
+          </div>
+        </div>
+      </div>
+    ),
+    error: (
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1, color: "#999", marginBottom: 8 }}>
+          REPAIR ACCURACY BY ERROR-HANDLING MECHANISM
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 5 }}>
+          {conditionData.map(d => (
+            <div key={d.label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+              <div style={{ fontSize: 10, color: "#666", width: 80, textAlign: "right" }}>{d.label}</div>
+              <div style={{ flex: 1, position: "relative", height: 14, background: "#f0f0f0", borderRadius: 4, overflow: "hidden" }}>
+                <div style={{ height: "100%", borderRadius: 4, background: d.acc >= 0.56 ? `${C.red}60` : `${C.red}40`, width: `${d.acc * 100}%`, transition: "width 0.6s ease" }} />
+              </div>
+              <span style={{ fontSize: 10, color: "#888", fontWeight: 600, width: 32 }}>{Math.round(d.acc * 100)}%</span>
+            </div>
+          ))}
+        </div>
+        <div style={{ fontSize: 10, color: "#bbb", fontStyle: "italic", marginTop: 6 }}>
+          No significant differences between conditions (ANOVA p=0.82)
+        </div>
+      </div>
+    ),
+    diverse: (
+      <div style={{ marginBottom: 14 }}>
+        <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1, color: "#999", marginBottom: 8 }}>
+          USER EXPERTISE DISTRIBUTION (N=26)
+        </div>
+        <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          {[
+            { level: "Novice", n: 9, pref: "Visualization + explanations", color: "#6ab7e8" },
+            { level: "Intermediate", n: 10, pref: "Mixed strategies", color: "#f5b342" },
+            { level: "Expert", n: 7, pref: "Direct editing + data preview", color: "#6bc48a" },
+          ].map(g => (
+            <div key={g.level} style={{
+              flex: "1 1 120px", padding: "10px 12px", borderRadius: 8,
+              background: `${g.color}12`, border: `1px solid ${g.color}30`,
+            }}>
+              <div style={{ fontSize: 16, fontWeight: 700, color: g.color }}>{g.n}</div>
+              <div style={{ fontSize: 11, fontWeight: 600, color: "#444" }}>{g.level}</div>
+              <div style={{ fontSize: 10, color: "#888", marginTop: 2 }}>Preferred: {g.pref}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    ),
+  };
+
+  return (
+    <div style={{ marginTop: 28 }}>
+      <div
+        style={{
+          display: "flex", alignItems: "center", gap: 8,
+          padding: "12px 16px", borderRadius: 10,
+          background: "#f8f6ff",
+          border: "1.5px solid #7c6bc4",
+        }}
+      >
+        <BookOpen size={16} color="#7c6bc4" strokeWidth={1.5} />
+        <div style={{ flex: 1 }}>
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 2, color: "#7c6bc4" }}>
+            EMPIRICAL GROUNDING
+          </div>
+          <div style={{ fontSize: 11, color: "#999", marginTop: 2 }}>
+            NL2SQL Error Study (Appendix) &mdash; 3 studies, 4 models, 26 participants, 48 error types
+          </div>
+        </div>
+      </div>
+
+      <div style={{ marginTop: 16 }}>
+        <div style={{
+          padding: "16px 18px", borderRadius: 10, background: "#f8f6ff",
+          border: "1px solid #e8e4f4", marginBottom: 16,
+        }}>
+          <div style={{ fontSize: 13, color: "#444", lineHeight: 1.7 }}>
+            An empirical study across three investigations into Natural Language to SQL (NL2SQL) errors provides
+            independent evidence for the design principles derived from the four systems. The study analyzed errors
+            from 4 NL2SQL models (SmBoP, BRIDGE, GAZP, DIN-SQL+GPT-4), developed a 48-type error taxonomy, measured
+            human-model attention alignment on 200 tasks, and evaluated error-handling mechanisms with 26 participants.
+          </div>
+        </div>
+
+        <div style={{ display: "flex", gap: 10, marginBottom: 20, flexWrap: "wrap" }}>
+          <div style={{ flex: "1 1 160px", padding: "14px 16px", borderRadius: 10, background: "#fafafa", border: "1px solid #eee" }}>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1, color: "#999", marginBottom: 4 }}>STUDY 1: ERROR TAXONOMY</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: "#7c6bc4" }}>48</div>
+            <div style={{ fontSize: 11, color: "#666" }}>error types identified across syntactic and semantic dimensions from 4 models</div>
+          </div>
+          <div style={{ flex: "1 1 160px", padding: "14px 16px", borderRadius: 10, background: "#fafafa", border: "1px solid #eee" }}>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1, color: "#999", marginBottom: 4 }}>STUDY 2: ATTENTION</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: "#7c6bc4" }}>77.6%</div>
+            <div style={{ fontSize: 11, color: "#666" }}>human-model attention alignment for correct queries (K=12), significantly higher than incorrect</div>
+          </div>
+          <div style={{ flex: "1 1 160px", padding: "14px 16px", borderRadius: 10, background: "#fafafa", border: "1px solid #eee" }}>
+            <div style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1, color: "#999", marginBottom: 4 }}>STUDY 3: USER STUDY</div>
+            <div style={{ fontSize: 18, fontWeight: 700, color: "#7c6bc4" }}>~56%</div>
+            <div style={{ fontSize: 11, color: "#666" }}>repair accuracy across all conditions with no significant difference (p=0.82)</div>
+          </div>
+        </div>
+
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {challenges.filter(ch => ch.nlqEvidence).map(ch => (
+            <div key={ch.id} style={{
+              padding: 18, borderRadius: 10,
+              background: `${ch.color}04`, border: `1px solid ${ch.color}20`,
+              borderLeft: `3px solid ${ch.color}`,
+            }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 12 }}>
+                <Target size={14} color={ch.color} strokeWidth={2} />
+                <div style={{ fontSize: 12, fontWeight: 700, color: ch.color }}>
+                  NLQ Evidence for &ldquo;{ch.label}&rdquo;
+                </div>
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: "#333", marginBottom: 8, lineHeight: 1.5 }}>
+                {ch.nlqEvidence.finding}
+              </div>
+              <div style={{ display: "flex", gap: 16, marginBottom: 12, flexWrap: "wrap" }}>
+                <div style={{
+                  padding: "6px 12px", borderRadius: 6, background: `${ch.color}12`,
+                  display: "inline-flex", alignItems: "baseline", gap: 6,
+                }}>
+                  <span style={{ fontSize: 10, fontWeight: 700, letterSpacing: 1, color: "#999" }}>{ch.nlqEvidence.statLabel}</span>
+                  <span style={{ fontSize: 16, fontWeight: 700, color: ch.color }}>{ch.nlqEvidence.stat}</span>
+                </div>
+              </div>
+              <div style={{ fontSize: 12, color: "#555", lineHeight: 1.7, marginBottom: 12 }}>
+                {ch.nlqEvidence.detail}
+              </div>
+              {vizByChallenge[ch.id]}
+              <div style={{
+                padding: "10px 14px", borderRadius: 8, background: "#fff",
+                border: "1px solid #e8e8e8", marginTop: 4,
+              }}>
+                <div style={{ display: "flex", alignItems: "flex-start", gap: 8 }}>
+                  <Lightbulb size={14} color={ch.color} strokeWidth={2} style={{ marginTop: 2, flexShrink: 0 }} />
+                  <div style={{ fontSize: 12, color: "#555", lineHeight: 1.6, fontStyle: "italic" }}>
+                    {ch.nlqEvidence.implication}
+                  </div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 16 }}>
+          <div>
+            <Figure src="/figures/nlq-attention-alignment.png"
+              caption="Attention alignment distributions: correct queries (top, blue) cluster at higher coverage than incorrect queries (bottom, red), confirming that human-model attention misalignment correlates with AI errors (Study 2)"
+              maxW={400} />
+          </div>
+          <div>
+            <Figure src="/figures/nlq-attention-k.png"
+              caption="Keyword coverage rates at varying K: correct queries consistently show higher alignment at every threshold, with all p-values < 0.05 (Study 2)"
+              maxW={400} />
+          </div>
+        </div>
       </div>
     </div>
   );
@@ -1189,10 +1881,181 @@ function ConclusionSlide() {
           &ldquo;nervous system&rdquo; that connects AI capabilities with human cognition. This dissertation contributes
           four instantiations of that coupling layer across creative production, accessibility, embodied assistance, and knowledge work.
         </div>
-        <div style={{ fontSize: 20, fontWeight: 600, color: C.charcoal }}>
-          Thank you! &nbsp; Questions?
-        </div>
         <div style={{ fontSize: 12, color: "#999", marginTop: 8 }}>Zheng Ning &middot; University of Notre Dame &middot; Advisor: Toby Jia-Jun Li</div>
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ACKNOWLEDGMENT — COMMITTEE
+   ═══════════════════════════════════════════════════════════════ */
+const COMMITTEE = [
+  { name: "Toby Jia-Jun Li", role: "Advisor", affiliation: "University of Notre Dame", img: "/figures/portraits/toby-li.jpg", url: "https://toby.li/" },
+  { name: "Diego Gomez-Zara", role: "Committee Member", affiliation: "University of Notre Dame", img: "/figures/portraits/diego-gomez-zara.jpg", url: "https://www.dgomezara.cl/" },
+  { name: "Tingyu Cheng", role: "Committee Member", affiliation: "University of Notre Dame", img: "/figures/portraits/tingyu-cheng.jpg", url: "https://tingyucheng.com/" },
+  { name: "Yapeng Tian", role: "Committee Member", affiliation: "University of Texas at Dallas", img: "/figures/portraits/yapeng-tian.jpg", url: "https://www.yapengtian.com/" },
+];
+
+function PortraitCircle({ name, role, affiliation, img, url, size = 140 }) {
+  const [hovered, setHovered] = useState(false);
+  const Wrapper = url ? "a" : "div";
+  const wrapperProps = url ? { href: url, target: "_blank", rel: "noopener noreferrer" } : {};
+  return (
+    <Wrapper
+      {...wrapperProps}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      style={{
+        display: "flex", flexDirection: "column", alignItems: "center", gap: 10, width: size + 40,
+        textDecoration: "none", cursor: url ? "pointer" : "default",
+      }}
+    >
+      <div style={{
+        width: size, height: size, perspective: 600,
+      }}>
+        <div style={{
+          width: "100%", height: "100%", borderRadius: "50%", overflow: "hidden",
+          border: `3px solid ${hovered ? "#999" : "#e8e8e8"}`,
+          background: "#f5f5f5",
+          boxShadow: hovered ? "0 4px 20px rgba(0,0,0,0.18)" : "0 2px 12px rgba(0,0,0,0.08)",
+          display: "flex", alignItems: "center", justifyContent: "center",
+          transition: "transform 0.6s cubic-bezier(0.4,0,0.2,1), box-shadow 0.3s, border-color 0.3s",
+          transform: hovered ? "rotateY(360deg)" : "rotateY(0deg)",
+        }}>
+          <img
+            src={img} alt={name}
+            onError={e => { e.target.style.display = "none"; e.target.nextSibling.style.display = "flex"; }}
+            style={{ width: "100%", height: "100%", objectFit: "cover" }}
+          />
+          <span style={{ display: "none", fontSize: size / 3, color: "#ccc", fontWeight: 700, alignItems: "center", justifyContent: "center" }}>
+            {name.split(" ").map(n => n[0]).join("")}
+          </span>
+        </div>
+      </div>
+      <div style={{ textAlign: "center" }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: hovered ? "#1a1a2e" : C.charcoal, lineHeight: 1.3, transition: "color 0.2s" }}>{name}</div>
+        {role && <div style={{ fontSize: 11, color: "#888", marginTop: 2 }}>{role}</div>}
+        {affiliation && <div style={{ fontSize: 10, color: "#aaa", marginTop: 1 }}>{affiliation}</div>}
+      </div>
+    </Wrapper>
+  );
+}
+
+function AcknowledgmentCommitteeSlide() {
+  return (
+    <div>
+      <div style={{ fontSize: 14, color: "#555", lineHeight: 1.7, marginBottom: 36, maxWidth: 700, textAlign: "center", margin: "0 auto 36px" }}>
+        I am deeply grateful to my advisor and committee members for their guidance, critical feedback, and continued support throughout this journey.
+      </div>
+      <div style={{ display: "flex", justifyContent: "center", gap: 48, flexWrap: "wrap" }}>
+        {COMMITTEE.map(m => (
+          <PortraitCircle key={m.name} {...m} size={150} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ACKNOWLEDGMENT — COLLABORATORS
+   ═══════════════════════════════════════════════════════════════ */
+const COLLABORATORS = [
+  { name: "Anh Truong", img: "/figures/portraits/anh-truong.jpg", url: "https://brown.stanford.edu/portfolio/anh-truong/" },
+  { name: "Brianna Wimer", img: "/figures/portraits/brianna-wimer.jpg", url: "https://www.briannawimer.com/" },
+  { name: "Chenglong Wang", img: "/figures/portraits/chenglong-wang.jpg", url: "https://chenglongwang.org/" },
+  { name: "Chenliang Xu", img: "/figures/portraits/chenliang-xu.jpg", url: "https://www.cs.rochester.edu/~cxu22/" },
+  { name: "Daniel Killough", img: "/figures/portraits/daniel-killough.jpg", url: "https://scholar.google.com/citations?user=Lu3L4HoAAAAJ" },
+  { name: "Dave Brown", img: "/figures/portraits/dave-brown.jpg", url: "https://www.microsoft.com/en-us/research/people/dabrown/" },
+  { name: "Dingzeyu Li", img: "/figures/portraits/dingzeyu-li.jpg", url: "https://dingzeyu.li/" },
+  { name: "Fanny Chevalier", img: "/figures/portraits/fanny-chevalier.png", url: "https://www.cs.toronto.edu/~fchevali/fannydotnet/" },
+  { name: "Franklin Mingzhe Li", img: "/figures/portraits/franklin-li.jpg", url: "https://franklin-li.com/" },
+  { name: "Hugo Romat", img: "/figures/portraits/hugo-romat.jpg", url: "https://hugoromat.com/" },
+  { name: "Jeevana Priya Inala", img: "/figures/portraits/jeevana-inala.jpg", url: "https://jinala.github.io/" },
+  { name: "Jerrick Ban", img: "/figures/portraits/jerrick-ban.png", url: "https://www.linkedin.com/in/jerrickban/" },
+  { name: "Jiawen Li", img: "/figures/portraits/jiawen-li.jpg", url: "https://jiawen-lee.github.io/JiawenLi/" },
+  { name: "JooYoung Seo", img: "/figures/portraits/jooyoung-seo.jpg", url: "https://ischool.illinois.edu/people/jooyoung-seo" },
+  { name: "Kaiwen Jiang", img: "/figures/portraits/kaiwen-jiang.jpg", url: "https://scholar.google.com/citations?user=kHRmdjwAAAAJ" },
+  { name: "Ken Hinckley", img: "/figures/portraits/ken-hinckley.jpg", url: "https://kenhinckley.wordpress.com/" },
+  { name: "Keyi Chen", img: "/figures/portraits/keyi-chen.png", url: "https://scholar.google.com/citations?user=lkH63CEAAAAJ" },
+  { name: "Leyang Li", img: "/figures/portraits/leyang-li.webp", url: "https://leoreoreo.github.io/" },
+  { name: "Lydia B. Chilton", img: "/figures/portraits/lydia-chilton.jpg", url: "https://www.cs.columbia.edu/~chilton/chilton.html" },
+  { name: "Michel Pahud", img: "/figures/portraits/michel-pahud.png", url: "https://www.microsoft.com/en-us/research/people/mpahud/" },
+  { name: "Mira Dontcheva", img: "/figures/portraits/mira-dontcheva.jpg", url: "https://research.adobe.com/person/mira-dontcheva/" },
+  { name: "Nathalie Riche", img: "/figures/portraits/nathalie-riche.jpg", url: "https://www.microsoft.com/en-us/research/people/nath/" },
+  { name: "Nicolai Marquardt", img: "/figures/portraits/nicolai-marquardt.jpg", url: "http://www.nicolaimarquardt.com/" },
+  { name: "Patrick Carrington", img: "/figures/portraits/patrick-carrington.jpg", url: "https://patrickcarrington.com/" },
+  { name: "Sitong Wang", img: "/figures/portraits/sitong-wang.jpg", url: "https://sitong-wang.github.io/" },
+  { name: "Tianyi Sun", img: "/figures/portraits/tianyi-sun.jpg", url: "https://tianysun.github.io/aboutme/" },
+  { name: "Tianyi Zhang", img: "/figures/portraits/tianyi-zhang.png", url: "https://tianyi-zhang.github.io/" },
+  { name: "Yuan Tian", img: "/figures/portraits/yuan-tian.jpg", url: "https://yuan-tian.com/" },
+  { name: "Yuhang Zhao", img: "/figures/portraits/yuhang-zhao.jpg", url: "https://www.yuhangz.com/" },
+  { name: "Zheng Zhang", img: "/figures/portraits/zheng-zhang.jpg", url: "https://hci.nd.edu/people/graduate-students/zheng-zhang/" },
+];
+
+function AcknowledgmentCollaboratorsSlide() {
+  return (
+    <div>
+      <div style={{ fontSize: 14, color: "#555", lineHeight: 1.7, marginBottom: 32, maxWidth: 700, textAlign: "center", margin: "0 auto 32px" }}>
+        I am fortunate to have worked with exceptional mentors and collaborators who brought complementary expertise and perspectives, and more importantly, cherished friendships that will last forever.
+      </div>
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(110px, 1fr))",
+        gap: "24px 12px",
+        justifyItems: "center",
+        maxWidth: 960,
+        margin: "0 auto",
+      }}>
+        {COLLABORATORS.map(c => (
+          <PortraitCircle key={c.name} name={c.name} img={c.img} url={c.url} size={84} />
+        ))}
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   ACKNOWLEDGMENT — NOTRE DAME FRIENDS
+   ═══════════════════════════════════════════════════════════════ */
+const ND_FRIENDS = [
+  { name: "Annalisa Szymanski", img: "/figures/portraits/annalisa-szymanski.jpg", url: "https://hci.nd.edu/people/graduate-students/annalisa-szymanski/" },
+  { name: "Chaoran Chen", img: "/figures/portraits/chaoran-chen.jpg", url: "https://www.chaoranchen.com/" },
+  { name: "Charles Chiang", img: "/figures/portraits/charles-chiang.jpg", url: "https://charles-c-chiang.github.io/" },
+  { name: "Mariana Fernández Espinosa", img: "/figures/portraits/mariana-fernandez.jpg", url: "https://hci.nd.edu/people/graduate-students/mariana-consuelo-fernandez-espinosa/" },
+  { name: "Meng Chen", img: "/figures/portraits/meng-chen.webp", url: "https://meng-chen.com/" },
+  { name: "Mohammed Almutairi", img: "/figures/portraits/mohammed-almutairi.png", url: "https://hci.nd.edu/people/graduate-students/mohammed-almutairi/" },
+  { name: "Nandini Banerjee", img: "/figures/portraits/nandini-banerjee.jpg", url: "https://nanbantan.github.io/" },
+  { name: "Niloofar Sayadi", img: "/figures/portraits/niloofar-sayadi.jpg", url: "https://sites.google.com/nd.edu/niloofarsayadi/" },
+  { name: "Ningzhi Tang", img: "/figures/portraits/ningzhi-tang.jpg", url: "https://www.nztang.com/" },
+  { name: "Oghenemaro Anuyah", img: "/figures/portraits/oghenemaro-anuyah.png", url: "https://anuyahmaro.github.io/" },
+  { name: "Ozioma Collins Oguine", img: "/figures/portraits/ozioma-oguine.jpg", url: "https://hci.nd.edu/people/graduate-students/ozioma-collins-oguine/" },
+  { name: "Simret Gebreegziabher", img: "/figures/portraits/simret-gebreegziabher.png", url: "https://simreta.github.io/" },
+  { name: "Sumin Hong", img: "/figures/portraits/sumin-hong.jpg", url: "https://scholar.google.com/citations?user=gg-AUEsAAAAJ" },
+  { name: "Shang Ma", img: "/figures/portraits/shang-ma.png", url: "http://shangma.org/" },
+  { name: "Yuwen Lu", img: "/figures/portraits/yuwen-lu.png", url: "https://yuwen.io/" },
+  { name: "Yinuo Yang", img: "/figures/portraits/yinuo-yang.png", url: "https://x.com/yino_yang" },
+  { name: "Yunhao Xing", img: "/figures/portraits/yunhao-xing.jpg", url: "https://github.com/YunhaoXing" },
+  { name: "Zhenwen Liang", img: "/figures/portraits/zhenwen-liang.jpg", url: "https://zhenwen-nlp.github.io/" },
+];
+
+function AcknowledgmentFriendsSlide() {
+  return (
+    <div>
+      <div style={{ fontSize: 14, color: "#555", lineHeight: 1.7, marginBottom: 32, maxWidth: 700, textAlign: "center", margin: "0 auto 32px" }}>
+        Thank you to all my best colleagues and friends at Notre Dame who made the doctoral journey both fruitful and enjoyable.
+      </div>
+      <div style={{
+        display: "grid",
+        gridTemplateColumns: "repeat(auto-fill, minmax(110px, 1fr))",
+        gap: "24px 12px",
+        justifyItems: "center",
+        maxWidth: 960,
+        margin: "0 auto",
+      }}>
+        {ND_FRIENDS.map(c => (
+          <PortraitCircle key={c.name} name={c.name} img={c.img} url={c.url} size={84} />
+        ))}
       </div>
     </div>
   );
@@ -1202,17 +2065,20 @@ function ConclusionSlide() {
    MAIN APP
    ═══════════════════════════════════════════════════════════════ */
 const SECTIONS = [
-  { id: "title", label: "Title" },
-  { id: "motivation", label: "Motivation" },
-  { id: "overview", label: "Overview" },
-  { id: "mimosa", label: "MIMOSA" },
-  { id: "spica", label: "SPICA" },
-  { id: "aroma", label: "AROMA" },
-  { id: "transmog", label: "TRANSMOGRIFIER" },
-  { id: "symbiosis", label: "Discussion" },
-  { id: "axes", label: "Future" },
-  { id: "principles", label: "Principles" },
-  { id: "conclusion", label: "Conclusion" },
+  { id: "title", label: "Title", depth: 0 },
+  { id: "motivation", label: "Motivation", depth: 0 },
+  { id: "overview", label: "Overview", depth: 0 },
+  { id: "mimosa", label: "MIMOSA", depth: 1, color: C.mimosa },
+  { id: "spica", label: "SPICA", depth: 1, color: C.spica },
+  { id: "aroma", label: "AROMA", depth: 1, color: C.aroma },
+  { id: "transmog", label: "TRANSMOGRIFIER", depth: 1, color: C.transmog },
+  { id: "symbiosis", label: "Discussion", depth: 0 },
+  { id: "axes", label: "Future", depth: 0 },
+  { id: "principles", label: "Principles", depth: 0 },
+  { id: "conclusion", label: "Conclusion", depth: 0 },
+  { id: "ack-committee", label: "Committee", depth: 0 },
+  { id: "ack-collaborators", label: "Collaborators", depth: 0 },
+  { id: "ack-friends", label: "Friends", depth: 0 },
 ];
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1225,41 +2091,47 @@ function LoginScreen({ onLogin }) {
       minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
       fontFamily: "'Inter', -apple-system, sans-serif", background: "#fff",
     }}>
-      <div style={{ textAlign: "center", maxWidth: 400, padding: 32 }}>
-        <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 4, color: "#999", marginBottom: 16 }}>PHD DISSERTATION DEFENSE</div>
-        <h1 style={{ fontSize: 26, fontWeight: 700, color: "#1a1a2e", lineHeight: 1.3, marginBottom: 8 }}>
-          Designing Multimodal Human-AI Systems
-        </h1>
-        <div style={{ fontSize: 14, color: "#666", marginBottom: 32 }}>Zheng Ning &middot; University of Notre Dame</div>
-        <div style={{ marginBottom: 12, fontSize: 13, color: "#888" }}>Enter your name to join</div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <input
-            value={name}
-            onChange={e => setName(e.target.value)}
-            onKeyDown={e => e.key === "Enter" && name.trim() && onLogin(name.trim())}
-            placeholder="Your name"
-            autoFocus
-            style={{
-              flex: 1, padding: "12px 16px", borderRadius: 10, border: "1.5px solid #e0e0e0",
-              fontSize: 14, outline: "none", fontFamily: "inherit",
-            }}
-          />
-          <button
-            onClick={() => name.trim() && onLogin(name.trim())}
-            disabled={!name.trim()}
-            style={{
-              padding: "12px 20px", borderRadius: 10, border: "none",
-              background: name.trim() ? "#2d2d2d" : "#ddd", color: "#fff",
-              fontSize: 14, fontWeight: 600, cursor: name.trim() ? "pointer" : "default",
-              display: "flex", alignItems: "center", gap: 6, transition: "all 0.2s",
-            }}
-          >
-            <LogIn size={16} /> Enter
-          </button>
+        <div style={{ textAlign: "center", maxWidth: 800, padding: "40px 32px" }}>
+          <img src="/nd-logo.png" alt="University of Notre Dame" style={{ height: 140, marginBottom: 32, objectFit: "contain" }} />
+          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 4, color: "#999", marginBottom: 20 }}>PHD DISSERTATION DEFENSE</div>
+          <h1 style={{ fontSize: 28, fontWeight: 700, color: "#1a1a2e", lineHeight: 1.35, marginBottom: 12 }}>
+            Designing Multimodal Human-AI Systems to Enhance Human Cognitive Capability
+          </h1>
+          <div style={{ fontSize: 15, color: "#666", marginBottom: 40 }}>Zheng Ning &middot; University of Notre Dame</div>
+          <div style={{ marginBottom: 12, fontSize: 13, color: "#888" }}>Enter your name to join</div>
+          <div style={{ display: "flex", gap: 8, maxWidth: 380, margin: "0 auto" }}>
+            <input
+              value={name}
+              onChange={e => setName(e.target.value)}
+              onKeyDown={e => e.key === "Enter" && name.trim() && onLogin(name.trim())}
+              placeholder="Your name"
+              autoFocus
+              style={{
+                flex: 1, padding: "12px 16px", borderRadius: 10, border: "1.5px solid #e0e0e0",
+                fontSize: 14, outline: "none", fontFamily: "inherit",
+              }}
+            />
+            <button
+              onClick={() => name.trim() && onLogin(name.trim())}
+              disabled={!name.trim()}
+              style={{
+                padding: "12px 20px", borderRadius: 10, border: "none",
+                background: name.trim() ? "#0c2340" : "#ddd", color: "#fff",
+                fontSize: 14, fontWeight: 600, cursor: name.trim() ? "pointer" : "default",
+                display: "flex", alignItems: "center", gap: 6, transition: "all 0.2s",
+              }}
+            >
+              <LogIn size={16} /> Enter
+            </button>
+          </div>
         </div>
-      </div>
     </div>
   );
+}
+
+function isPresenter(name) {
+  const n = name.toLowerCase().trim();
+  return n === "ning" || n === "nz";
 }
 
 export default function App() {
@@ -1267,6 +2139,12 @@ export default function App() {
   const [userName, setUserName] = useState(() => {
     try { return sessionStorage.getItem("defense_user") || ""; } catch { return ""; }
   });
+  const [showRemoteCursors, setShowRemoteCursors] = useState(true);
+  const [chatOpen, setChatOpen] = useState(false);
+  const [chatUnread, setChatUnread] = useState(0);
+  const [chatMode, setChatMode] = useState("panel");
+  const [showOutline, setShowOutline] = useState(true);
+  const squeezed = chatOpen && chatMode === "panel";
 
   const handleLogin = (name) => {
     setUserName(name);
@@ -1289,9 +2167,24 @@ export default function App() {
   if (!userName) return <LoginScreen onLogin={handleLogin} />;
 
   return (
-    <div style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif", background: "#fff", color: "#1a1a2e" }}>
-      <Presence userName={userName} activeSection={activeSection} />
-      <SlideNav sections={SECTIONS} activeId={activeSection} onNav={scrollTo} />
+    <div style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif", background: "#fff", color: "#1a1a2e", position: "relative" }}>
+      <Presence userName={userName} activeSection={activeSection} showRemoteCursors={showRemoteCursors} />
+      {showOutline && <OutlineSidebar sections={SECTIONS} activeId={activeSection} onNav={scrollTo} />}
+      <div style={{
+        marginRight: squeezed ? PANEL_WIDTH : 0,
+        transition: "margin-right 0.3s cubic-bezier(0.4,0,0.2,1)",
+      }}>
+
+      <TopBar
+        isPresenterUser={isPresenter(userName)}
+        showRemoteCursors={showRemoteCursors}
+        onToggleCursors={() => setShowRemoteCursors(prev => !prev)}
+        chatOpen={chatOpen}
+        onToggleChat={() => setChatOpen(prev => !prev)}
+        chatUnread={chatUnread}
+        showOutline={showOutline}
+        onToggleOutline={() => setShowOutline(prev => !prev)}
+      />
 
       <TitleSlide />
 
@@ -1321,7 +2214,7 @@ export default function App() {
       </Section>
 
       <Section id="transmog" label="System 4" title="TRANSMOGRIFIER: Interpretive Linking" color={C.transmog}
-        subtitle="Brushing and interpretive linking across heterogeneous knowledge representations. Under Review.">
+        subtitle="Brushing and interpretive linking across heterogeneous knowledge representations.">
         <TransmogrifierSlides />
       </Section>
 
@@ -1344,14 +2237,21 @@ export default function App() {
         <ConclusionSlide />
       </Section>
 
-      <div style={{ padding: "32px 24px 48px", textAlign: "center", borderTop: "1px solid #e8e8e8" }}>
-        <div style={{ fontSize: 12, color: "#bbb" }}>
-          Thesis Defense Interactive Visuals &middot; Zheng Ning &middot; University of Notre Dame
-          &nbsp;&middot;&nbsp; Logged in as <strong>{userName}</strong>
-        </div>
+      <Section id="ack-committee" label="Acknowledgments" title="Dissertation Committee">
+        <AcknowledgmentCommitteeSlide />
+      </Section>
+
+      <Section id="ack-collaborators" label="Acknowledgments" title="Mentors & Collaborators">
+        <AcknowledgmentCollaboratorsSlide />
+      </Section>
+
+      <Section id="ack-friends" label="Acknowledgments" title="Friends at Notre Dame">
+        <AcknowledgmentFriendsSlide />
+      </Section>
+
       </div>
 
-      <ChatRoom userName={userName} />
+      <ChatRoom userName={userName} isOpen={chatOpen} onClose={() => setChatOpen(false)} onUnreadChange={setChatUnread} mode={chatMode} onModeChange={setChatMode} />
     </div>
   );
 }

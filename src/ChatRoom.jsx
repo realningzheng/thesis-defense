@@ -314,6 +314,49 @@ function MessagePanel({ thread, userName }) {
   );
 }
 
+/* ─── Draggable position hook ─── */
+function useDrag(initialPos) {
+  const [pos, setPos] = useState(initialPos);
+  const dragState = useRef(null);
+
+  const onPointerDown = (e) => {
+    // ignore clicks on buttons/inputs inside the drag handle
+    if (e.target.closest("button, input, a")) return;
+    e.preventDefault();
+    dragState.current = {
+      startX: e.clientX, startY: e.clientY,
+      startPosX: pos.x, startPosY: pos.y,
+      moved: false,
+    };
+    window.addEventListener("pointermove", onPointerMove);
+    window.addEventListener("pointerup", onPointerUp);
+  };
+
+  const onPointerMove = (e) => {
+    if (!dragState.current) return;
+    const dx = e.clientX - dragState.current.startX;
+    const dy = e.clientY - dragState.current.startY;
+    if (Math.abs(dx) > 3 || Math.abs(dy) > 3) dragState.current.moved = true;
+    setPos({
+      x: Math.max(0, Math.min(window.innerWidth - 60, dragState.current.startPosX + dx)),
+      y: Math.max(0, Math.min(window.innerHeight - 60, dragState.current.startPosY + dy)),
+    });
+  };
+
+  const onPointerUp = () => {
+    window.removeEventListener("pointermove", onPointerMove);
+    window.removeEventListener("pointerup", onPointerUp);
+    const wasDrag = dragState.current?.moved;
+    dragState.current = null;
+    return wasDrag;
+  };
+
+  // returns true if the last interaction was a drag (suppress click)
+  const wasDragged = () => dragState.current?.moved;
+
+  return { pos, setPos, onPointerDown, wasDragged };
+}
+
 /* ═══════════════════════════════════════
    FLOATING CHAT WIDGET
    ═══════════════════════════════════════ */
@@ -330,6 +373,12 @@ export default function ChatRoom({ userName }) {
     isOpenRef.current = isOpen;
     isMinimizedRef.current = isMinimized;
   }, [isOpen, isMinimized]);
+
+  const { pos, onPointerDown, wasDragged } = useDrag({
+    x: typeof window !== "undefined" ? window.innerWidth - 76 : 0,
+    y: typeof window !== "undefined" ? window.innerHeight - 76 : 0,
+  });
+  const suppressClick = useRef(false);
 
   // Fetch threads and subscribe to realtime
   useEffect(() => {
@@ -386,19 +435,26 @@ export default function ChatRoom({ userName }) {
   // Floating Action Button (collapsed state)
   if (!isOpen) {
     return (
-      <button
-        onClick={handleOpen}
+      <div
+        onPointerDown={(e) => {
+          onPointerDown(e);
+          suppressClick.current = false;
+          const onUp = () => {
+            suppressClick.current = wasDragged();
+            window.removeEventListener("pointerup", onUp);
+          };
+          window.addEventListener("pointerup", onUp);
+        }}
+        onClick={() => { if (!suppressClick.current) handleOpen(); }}
         aria-label="Open Q&A chat"
         style={{
-          position: "fixed", bottom: 24, right: 24, zIndex: 900,
+          position: "fixed", left: pos.x, top: pos.y, zIndex: 900,
           width: 52, height: 52, borderRadius: 16, border: "none",
           background: C.sidebar, color: "#fff",
           display: "flex", alignItems: "center", justifyContent: "center",
-          cursor: "pointer", boxShadow: "0 4px 20px rgba(0,0,0,0.15), 0 1px 4px rgba(0,0,0,0.1)",
-          transition: "transform 0.2s, box-shadow 0.2s",
+          cursor: "grab", boxShadow: "0 4px 20px rgba(0,0,0,0.15), 0 1px 4px rgba(0,0,0,0.1)",
+          touchAction: "none", userSelect: "none",
         }}
-        onMouseEnter={e => { e.currentTarget.style.transform = "scale(1.05)"; e.currentTarget.style.boxShadow = "0 6px 28px rgba(0,0,0,0.2)"; }}
-        onMouseLeave={e => { e.currentTarget.style.transform = "scale(1)"; e.currentTarget.style.boxShadow = "0 4px 20px rgba(0,0,0,0.15), 0 1px 4px rgba(0,0,0,0.1)"; }}
       >
         <MessageSquare size={22} />
         {unreadCount > 0 && (
@@ -413,7 +469,7 @@ export default function ChatRoom({ userName }) {
             {unreadCount > 9 ? "9+" : unreadCount}
           </div>
         )}
-      </button>
+      </div>
     );
   }
 
@@ -421,17 +477,24 @@ export default function ChatRoom({ userName }) {
   if (isMinimized) {
     return (
       <div
-        onClick={handleRestore}
+        onPointerDown={(e) => {
+          onPointerDown(e);
+          suppressClick.current = false;
+          const onUp = () => {
+            suppressClick.current = wasDragged();
+            window.removeEventListener("pointerup", onUp);
+          };
+          window.addEventListener("pointerup", onUp);
+        }}
+        onClick={() => { if (!suppressClick.current) handleRestore(); }}
         style={{
-          position: "fixed", bottom: 24, right: 24, zIndex: 900,
+          position: "fixed", left: pos.x, top: pos.y, zIndex: 900,
           width: 280, padding: "10px 14px", borderRadius: 12,
-          background: C.sidebar, color: "#fff", cursor: "pointer",
+          background: C.sidebar, color: "#fff", cursor: "grab",
           boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
           display: "flex", alignItems: "center", gap: 8,
-          transition: "transform 0.2s",
+          touchAction: "none", userSelect: "none",
         }}
-        onMouseEnter={e => e.currentTarget.style.transform = "translateY(-2px)"}
-        onMouseLeave={e => e.currentTarget.style.transform = "translateY(0)"}
       >
         <MessageSquare size={14} />
         <span style={{ fontSize: 12, fontWeight: 600, flex: 1 }}>Thesis Q&A</span>
@@ -446,10 +509,13 @@ export default function ChatRoom({ userName }) {
     );
   }
 
-  // Full floating panel
+  // Full floating panel — anchor to bottom-left corner of the panel
+  const panelLeft = Math.max(0, Math.min(pos.x, window.innerWidth - 640));
+  const panelTop = Math.max(0, Math.min(pos.y - 520 + 52, window.innerHeight - 520));
+
   return (
     <div style={{
-      position: "fixed", bottom: 24, right: 24, zIndex: 900,
+      position: "fixed", left: panelLeft, top: panelTop, zIndex: 900,
       width: 640, height: 520,
       borderRadius: 14, overflow: "hidden",
       background: "#fff",
@@ -457,12 +523,18 @@ export default function ChatRoom({ userName }) {
       display: "flex", flexDirection: "column",
       animation: "chatWidgetIn 0.2s ease-out",
     }}>
-      {/* Title bar */}
-      <div style={{
-        display: "flex", alignItems: "center", padding: "0 4px 0 0",
-        background: C.sidebar, flexShrink: 0,
-      }}>
-        <div style={{ flex: 1 }} />
+      {/* Title bar — drag handle */}
+      <div
+        onPointerDown={onPointerDown}
+        style={{
+          display: "flex", alignItems: "center", padding: "0 4px 0 0",
+          background: C.sidebar, flexShrink: 0,
+          cursor: "grab", touchAction: "none", userSelect: "none",
+        }}
+      >
+        <div style={{ flex: 1, padding: "8px 12px", fontSize: 11, fontWeight: 600, color: "rgba(255,255,255,0.5)", letterSpacing: 0.5 }}>
+          Thesis Q&A
+        </div>
         <button onClick={handleMinimize} aria-label="Minimize chat"
           style={{
             background: "none", border: "none", color: "rgba(255,255,255,0.5)",

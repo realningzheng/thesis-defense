@@ -29,6 +29,11 @@ body {
   50% { box-shadow: 0 0 0 12px rgba(58,124,165,0); }
 }
 
+@keyframes chatWidgetIn {
+  from { opacity: 0; transform: translateY(12px) scale(0.97); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
 /* Scrollbar styling */
 ::-webkit-scrollbar {
   width: 6px;

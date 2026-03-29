@@ -1083,7 +1083,6 @@ const SECTIONS = [
   { id: "axes", label: "Future" },
   { id: "principles", label: "Principles" },
   { id: "conclusion", label: "Conclusion" },
-  { id: "qa", label: "Q&A" },
 ];
 
 /* ═══════════════════════════════════════════════════════════════
@@ -1215,17 +1214,14 @@ export default function App() {
         <ConclusionSlide />
       </Section>
 
-      <Section id="qa" label="Interactive" title="Questions & Discussion"
-        subtitle="Ask questions about the thesis — the bot 'Ning' will reply based on the dissertation content. Each question opens a thread. Follow-up replies are batched after a 1-minute pause.">
-        <ChatRoom userName={userName} />
-      </Section>
-
       <div style={{ padding: "32px 24px 48px", textAlign: "center", borderTop: "1px solid #e8e8e8" }}>
         <div style={{ fontSize: 12, color: "#bbb" }}>
           Thesis Defense Interactive Visuals &middot; Zheng Ning &middot; University of Notre Dame
           &nbsp;&middot;&nbsp; Logged in as <strong>{userName}</strong>
         </div>
       </div>
+
+      <ChatRoom userName={userName} />
     </div>
   );
 }

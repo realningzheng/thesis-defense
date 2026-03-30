@@ -2098,7 +2098,7 @@ function LoginScreen({ onLogin }) {
             Designing Multimodal Human-AI Systems to Enhance Human Cognitive Capability
           </h1>
           <div style={{ fontSize: 15, color: "#666", marginBottom: 40 }}>Zheng Ning &middot; University of Notre Dame</div>
-          <div style={{ marginBottom: 12, fontSize: 13, color: "#888" }}>Enter your name to join</div>
+          <div style={{ marginBottom: 12, fontSize: 13, color: "#888" }}>Enter your nick name to join</div>
           <div style={{ display: "flex", gap: 8, maxWidth: 380, margin: "0 auto" }}>
             <input
               value={name}

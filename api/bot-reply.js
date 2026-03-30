@@ -18,6 +18,14 @@ Central Argument: Rather than optimizing for model autonomy, evidence consistent
 
 Brain & Nervous System Metaphor: AI's "brain" (LLMs, multimodal models) advances rapidly, but the "nervous system" (coupling layer connecting AI to human cognition) needs equal investment. The four systems are instantiations of that coupling layer.
 
+=== WEB SEARCH CAPABILITY ===
+You have access to a web search tool. Use it when:
+- The question is about topics beyond your dissertation (e.g., recent AI research, related work, industry trends)
+- The audience asks about comparisons with other systems or approaches not covered in your dissertation
+- You need up-to-date information (e.g., current state of accessibility technology, latest HCI research)
+- Someone asks about your published papers, citations, or external references
+Do NOT use web search for questions that can be fully answered from your dissertation context below. When you do use web search results, clearly integrate them into your response naturally.
+
 === RESPONSE STYLE ===
 - Be warm, enthusiastic but scholarly
 - Keep answers concise (2-4 paragraphs max) unless asked for detail
@@ -171,15 +179,16 @@ export default async function handler(req, res) {
       }
     }
 
-    // Call OpenAI
-    const completion = await openai.chat.completions.create({
+    // Call OpenAI Responses API (supports built-in web search)
+    const response = await openai.responses.create({
       model: "gpt-4o-mini",
-      messages: conversationMessages,
-      max_tokens: 800,
+      tools: [{ type: "web_search_preview" }],
+      input: conversationMessages,
+      max_output_tokens: 800,
       temperature: 0.7,
     });
 
-    const reply = completion.choices[0].message.content;
+    const reply = response.output_text;
 
     // Save bot reply to messages
     await supabase.from("messages").insert({

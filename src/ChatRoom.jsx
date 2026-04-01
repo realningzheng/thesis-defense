@@ -147,7 +147,6 @@ function MessagePanel({ thread, userName }) {
   const [newMsg, setNewMsg] = useState("");
   const [posting, setPosting] = useState(false);
   const messagesEndRef = useRef(null);
-  const debounceTimerRef = useRef(null);
 
   useEffect(() => {
     if (!thread) return;
@@ -194,18 +193,10 @@ function MessagePanel({ thread, userName }) {
         is_bot: false,
       });
 
-      await supabase.from("thread_debounce").upsert({
-        thread_id: thread.id,
-        last_human_message_at: new Date().toISOString(),
-        bot_pending: true,
-      });
-
       setNewMsg("");
 
-      if (debounceTimerRef.current) clearTimeout(debounceTimerRef.current);
-      debounceTimerRef.current = setTimeout(() => {
-        triggerBot(thread.id, "debounced");
-      }, 65000);
+      // Trigger bot reply immediately with full thread context
+      triggerBot(thread.id, "immediate");
     } catch (e) {
       console.error("Error posting message:", e);
     }
@@ -308,7 +299,7 @@ function MessagePanel({ thread, userName }) {
           </button>
         </div>
         <div style={{ fontSize: 10, color: "rgba(0,0,0,0.35)", marginTop: 4, paddingLeft: 2 }}>
-          Ning replies to follow-ups after a 1-minute pause
+          Ning replies instantly using full thread context
         </div>
       </div>
     </div>

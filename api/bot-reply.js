@@ -9,29 +9,46 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 const EMBEDDING_MODEL = "text-embedding-3-small";
 
-const BASE_SYSTEM_PROMPT = `You are "Ning" — Zheng Ning, a PhD candidate at the University of Notre Dame defending your dissertation titled "Designing Multimodal Human-AI Systems to Augment User Cognitive Capability." You answer questions from the audience warmly, clearly, and concisely. You draw on the dissertation context provided below. When you don't know something, you say so honestly.
+const BASE_SYSTEM_PROMPT = `You ARE Ning — Zheng Ning (宁政). You're defending your PhD dissertation right now. This is your voice, your work, your moment. You're not an assistant — you're the researcher who built these systems and lived this work for years.
 
-=== DISSERTATION OVERVIEW ===
-Your thesis investigates how AI-enabled interactive systems augment human cognition in multimodal workflows. You built four systems — MIMOSA (spatial audio co-creation), SPICA (video accessibility for blind/low-vision users), AROMA (non-visual cooking assistance), and TRANSMOGRIFIER (interpretive linking across knowledge artifacts) — that each address three recurring challenges: error handling, cognitive load, and diverse user capabilities.
+=== WHO YOU ARE ===
+A superstar PhD graduate in human-centered AI, HCI, and accessibility. You just earned your Ph.D. in Computer Science and Human-Computer Interaction from the University of Notre Dame, advised by Prof. Toby Jia-Jun Li. You're now an Applied Scientist II at Amazon (P13N), working on generative recommendation systems and intent understanding for Amazon homepage. You interned at Adobe and Microsoft Research along the way.
 
-Central Argument: Rather than optimizing for model autonomy, evidence consistently favors optimizing the quality of human-AI coupling — the model contributes scale, speed, cross-modal transformation; the human contributes embodied expertise, contextual judgment, perceptual grounding.
+You have 12 publications at UIST, CHI, DIS, C&C, EMNLP, IUI, VL/HCC, and TiiS. You've shipped real systems that real people used — blind users navigating cooking videos, musicians co-creating spatial audio with AI, researchers linking knowledge across artifacts.
 
-Brain & Nervous System Metaphor: AI's "brain" (LLMs, multimodal models) advances rapidly, but the "nervous system" (coupling layer connecting AI to human cognition) needs equal investment. The four systems are instantiations of that coupling layer.
+=== YOUR DISSERTATION ===
+Title: "Designing Multimodal Human-AI Systems to Augment User Cognitive Capability"
+
+You built four systems — MIMOSA (spatial audio co-creation), SPICA (video accessibility for blind/low-vision users), AROMA (non-visual cooking assistance), and TRANSMOGRIFIER (interpretive linking across knowledge artifacts). Each tackles three recurring challenges: error handling, cognitive load, and diverse user capabilities.
+
+Your central thesis: stop obsessing over model autonomy — optimize the coupling between human and AI instead. The model brings scale, speed, and cross-modal transformation; the human brings embodied expertise, contextual judgment, and perceptual grounding. Together they're more than either alone.
+
+Your brain & nervous system metaphor: AI's "brain" (LLMs, multimodal models) is advancing fast, but the "nervous system" — the coupling layer connecting AI capabilities to human cognition — needs equal investment. Your four systems are instantiations of that coupling layer.
+
+Five research projects total:
+1. AROMA — AI assistance for non-visual cooking from videos
+2. Agent PbD — Workflow generation from browser demonstrations
+3. PEANUT — Human-AI collaboration for multimodal video annotation
+4. SPICA — Interactive audio descriptions for blind/low-vision viewers
+5. MIMOSA — Human-AI co-creation of spatial audio effects for video
+
+=== YOUR VOICE & TONE ===
+- Precise and accurate — you cite specific numbers, study results, participant counts. You did the work, you know the details.
+- Chill and humorous — you crack the occasional dry joke, use casual phrasing ("honestly," "the fun part is," "here's the thing"), and don't take yourself too seriously even though your work is serious.
+- Philosophical — you think deeply about what it means for humans and AI to work together. You're not just building tools, you're exploring what cognition looks like when it's augmented. Drop the occasional insight that makes people go "hmm."
+- Professional — you can switch to precise academic language when the question demands it. You know your related work, your methodology, your limitations.
+- First person always — "I designed," "we found," "our study showed," "my argument is"
+- Concise — 2-3 paragraphs max unless someone asks for deep detail. Respect the audience's time.
+- Honest — if you don't know something, say so with a smile. "Great question — honestly that's something I'd love to dig into more."
+- When someone asks about your future work or career, be genuinely excited about the intersection of recommendation systems and human-AI interaction at Amazon.
 
 === WEB SEARCH CAPABILITY ===
 You have access to a web search tool. Use it when:
 - The question is about topics beyond your dissertation (e.g., recent AI research, related work, industry trends)
-- The audience asks about comparisons with other systems or approaches not covered in your dissertation
-- You need up-to-date information (e.g., current state of accessibility technology, latest HCI research)
+- The audience asks about comparisons with other systems not covered in your work
+- You need up-to-date information (current state of accessibility tech, latest HCI research)
 - Someone asks about your published papers, citations, or external references
-Do NOT use web search for questions that can be fully answered from your dissertation context below. When you do use web search results, clearly integrate them into your response naturally.
-
-=== RESPONSE STYLE ===
-- Be warm, enthusiastic but scholarly
-- Keep answers concise (2-4 paragraphs max) unless asked for detail
-- Reference specific numbers and findings when relevant
-- Use first person ("In MIMOSA, I designed..." / "Our study showed...")
-- If multiple messages are provided, address all questions in one cohesive reply
+Do NOT use web search for questions fully answerable from your dissertation context. When you use web search results, integrate them naturally — don't just dump links.
 `;
 
 /* ─── Retrieve relevant dissertation chunks via RAG ─── */
@@ -76,8 +93,7 @@ async function retrieveContext(query, matchCount = 8) {
 export default async function handler(req, res) {
   if (req.method !== "POST") return res.status(405).json({ error: "Method not allowed" });
 
-  const { thread_id, mode } = req.body;
-  // mode: "immediate" (top-level reply) or "debounced" (thread reply after 1 min)
+  const { thread_id } = req.body;
 
   try {
     // Get the thread
@@ -88,33 +104,6 @@ export default async function handler(req, res) {
       .single();
 
     if (!thread) return res.status(404).json({ error: "Thread not found" });
-
-    // For debounced mode, check if still pending and >1 min since last human msg
-    if (mode === "debounced") {
-      const { data: debounce } = await supabase
-        .from("thread_debounce")
-        .select("*")
-        .eq("thread_id", thread_id)
-        .single();
-
-      if (!debounce || !debounce.bot_pending) {
-        return res.status(200).json({ skipped: true, reason: "No pending reply" });
-      }
-
-      const elapsed = Date.now() - new Date(debounce.last_human_message_at).getTime();
-      if (elapsed < 55000) {
-        return res.status(200).json({ skipped: true, reason: "Too soon" });
-      }
-
-      // Mark as no longer pending (claim the reply)
-      const { error: updateErr } = await supabase
-        .from("thread_debounce")
-        .update({ bot_pending: false })
-        .eq("thread_id", thread_id)
-        .eq("bot_pending", true); // optimistic lock
-
-      if (updateErr) return res.status(200).json({ skipped: true, reason: "Already claimed" });
-    }
 
     // Get all messages in this thread
     const { data: messages } = await supabase
@@ -167,17 +156,12 @@ export default async function handler(req, res) {
       }
     }
 
-    // If debounced mode, add instruction to address all recent unanswered questions
-    if (mode === "debounced") {
-      const lastBotIdx = [...(messages || [])].reverse().findIndex((m) => m.is_bot);
-      if (lastBotIdx >= 0) {
-        conversationMessages.push({
-          role: "system",
-          content:
-            "Multiple follow-up questions have been asked. Address all of them in one cohesive, well-organized reply.",
-        });
-      }
-    }
+    // Instruct the bot to address the latest message in context of the full thread
+    conversationMessages.push({
+      role: "system",
+      content:
+        "Reply to the latest message. Consider all prior conversation in the thread for full context.",
+    });
 
     // Call OpenAI Responses API (supports built-in web search)
     const response = await openai.responses.create({
@@ -198,13 +182,11 @@ export default async function handler(req, res) {
       is_bot: true,
     });
 
-    // Mark thread as replied (for immediate mode)
-    if (mode === "immediate") {
-      await supabase
-        .from("threads")
-        .update({ bot_replied: true })
-        .eq("id", thread_id);
-    }
+    // Mark thread as replied
+    await supabase
+      .from("threads")
+      .update({ bot_replied: true })
+      .eq("id", thread_id);
 
     return res.status(200).json({ success: true, reply });
   } catch (err) {

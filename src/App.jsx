@@ -146,8 +146,8 @@ function TopBar({ isPresenterUser, showRemoteCursors, onToggleCursors, chatOpen,
               cursor: "pointer", userSelect: "none", transition: "all 0.2s",
             }}
           >
-            <MessageSquare size={14} color={chatOpen ? C.charcoal : "#888"} />
-            <span style={{ fontSize: 11, fontWeight: 600, color: chatOpen ? C.charcoal : "#888" }}>Q&A</span>
+            <MessageSquare size={14} color={C.charcoal} />
+            <span style={{ fontSize: 11, fontWeight: 600, color: C.charcoal }}>Q&A</span>
             {chatUnread > 0 && (
               <div style={{
                 position: "absolute", top: -4, right: -4,

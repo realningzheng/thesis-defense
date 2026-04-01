@@ -17,6 +17,19 @@ const C = {
   border: "#e0e0e0", bg: "#fff", red: "#C0392B", orange: "#E67E22", blue: "#2980B9",
 };
 
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth <= breakpoint : false
+  );
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${breakpoint}px)`);
+    const handler = (e) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, [breakpoint]);
+  return isMobile;
+}
+
 const PROJECT_LINKS = {
   mimosa: { paper: "https://arxiv.org/abs/2404.15107", site: "https://zning.co/mimosa" },
   spica: { paper: "https://arxiv.org/abs/2402.07300", site: "https://sites.google.com/nd.edu/spica" },
@@ -28,7 +41,9 @@ const PROJECT_LINKS = {
    SHARED UI COMPONENTS
    ═══════════════════════════════════════════════════════════════ */
 function OutlineSidebar({ sections, activeId, onNav }) {
+  const isMobile = useIsMobile();
   const activeIdx = sections.findIndex(s => s.id === activeId);
+  if (isMobile) return null;
   return (
     <nav style={{
       position: "fixed", top: "50%", left: 12, transform: "translateY(-50%)",
@@ -74,6 +89,7 @@ function OutlineSidebar({ sections, activeId, onNav }) {
 }
 
 function TopBar({ isPresenterUser, showRemoteCursors, onToggleCursors, chatOpen, onToggleChat, chatUnread, showOutline, onToggleOutline }) {
+  const isMobile = useIsMobile();
   return (
     <div style={{
       position: "sticky", top: 0, zIndex: 100,
@@ -81,20 +97,20 @@ function TopBar({ isPresenterUser, showRemoteCursors, onToggleCursors, chatOpen,
       borderBottom: "1px solid #e0e0e0",
     }}>
       <div style={{
-        display: "flex", alignItems: "center", padding: "8px 24px",
-        gap: 14,
+        display: "flex", alignItems: "center", padding: isMobile ? "6px 12px" : "8px 24px",
+        gap: isMobile ? 8 : 14,
       }}>
-        <img src="/nd-logo.png" alt="University of Notre Dame" style={{ height: 60, objectFit: "contain" }} />
+        <img src="/nd-logo.png" alt="University of Notre Dame" style={{ height: isMobile ? 36 : 60, objectFit: "contain" }} />
         <div style={{ width: 1, height: 24, background: "#ddd", flexShrink: 0 }} />
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.charcoal, lineHeight: 1.3 }}>
-            Designing Multimodal Human-AI Systems to Enhance Human Cognitive Capability
+          <div style={{ fontSize: isMobile ? 11 : 13, fontWeight: 700, color: C.charcoal, lineHeight: 1.3 }}>
+            {isMobile ? "Multimodal Human-AI Systems" : "Designing Multimodal Human-AI Systems to Enhance Human Cognitive Capability"}
           </div>
           <div style={{ fontSize: 10, color: "#999", letterSpacing: 0.5 }}>PhD Defense &middot; Zheng Ning</div>
         </div>
 
-        <div style={{ display: "flex", alignItems: "center", gap: 6, flexShrink: 0 }}>
-          <div
+        <div style={{ display: "flex", alignItems: "center", gap: isMobile ? 4 : 6, flexShrink: 0 }}>
+          {!isMobile && <div
             onClick={onToggleOutline}
             style={{
               display: "flex", alignItems: "center", gap: 6,
@@ -106,7 +122,7 @@ function TopBar({ isPresenterUser, showRemoteCursors, onToggleCursors, chatOpen,
           >
             <List size={14} color={showOutline ? C.charcoal : "#888"} />
             <span style={{ fontSize: 11, fontWeight: 600, color: showOutline ? C.charcoal : "#888" }}>Outline</span>
-          </div>
+          </div>}
 
           {isPresenterUser && (
             <div
@@ -147,7 +163,7 @@ function TopBar({ isPresenterUser, showRemoteCursors, onToggleCursors, chatOpen,
             }}
           >
             <MessageSquare size={14} color={C.charcoal} />
-            <span style={{ fontSize: 11, fontWeight: 600, color: C.charcoal }}>Q&A</span>
+            {!isMobile && <span style={{ fontSize: 11, fontWeight: 600, color: C.charcoal }}>Q&A</span>}
             {chatUnread > 0 && (
               <div style={{
                 position: "absolute", top: -4, right: -4,
@@ -168,14 +184,15 @@ function TopBar({ isPresenterUser, showRemoteCursors, onToggleCursors, chatOpen,
 }
 
 function Section({ id, label, title, subtitle, color, children }) {
+  const isMobile = useIsMobile();
   return (
-    <div id={id} style={{ minHeight: "100vh", padding: "72px 32px 60px", maxWidth: 1100, margin: "0 auto" }}>
+    <div id={id} style={{ minHeight: isMobile ? "auto" : "100vh", padding: isMobile ? "40px 16px 32px" : "72px 32px 60px", maxWidth: 1100, margin: "0 auto" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 6 }}>
         {color && <div style={{ width: 32, height: 3, background: color, borderRadius: 2 }} />}
         <span style={{ fontSize: 11, fontWeight: 700, letterSpacing: 3, textTransform: "uppercase", color: color || "#999" }}>{label}</span>
       </div>
-      <h2 style={{ fontSize: 30, fontWeight: 700, color: "#1a1a2e", marginBottom: subtitle ? 8 : 28, lineHeight: 1.25 }}>{title}</h2>
-      {subtitle && <p style={{ fontSize: 14, color: "#666", marginBottom: 28, maxWidth: 780, lineHeight: 1.7 }}>{subtitle}</p>}
+      <h2 style={{ fontSize: isMobile ? 22 : 30, fontWeight: 700, color: "#1a1a2e", marginBottom: subtitle ? 8 : 28, lineHeight: 1.25 }}>{title}</h2>
+      {subtitle && <p style={{ fontSize: isMobile ? 13 : 14, color: "#666", marginBottom: 28, maxWidth: 780, lineHeight: 1.7 }}>{subtitle}</p>}
       {children}
     </div>
   );
@@ -361,14 +378,15 @@ function ComparisonBar({ label, valueA, valueB, labelA, labelB, max = 7, color, 
    SLIDE 0: TITLE
    ═══════════════════════════════════════════════════════════════ */
 function TitleSlide() {
+  const isMobile = useIsMobile();
   return (
-    <div id="title" style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: "40px 32px", textAlign: "center" }}>
-      <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 4, color: "#999", marginBottom: 20 }}>PHD DISSERTATION DEFENSE</div>
-      <h1 style={{ fontSize: 38, fontWeight: 700, color: "#1a1a2e", lineHeight: 1.3, maxWidth: 800, marginBottom: 16 }}>
+    <div id="title" style={{ minHeight: "100vh", display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", padding: isMobile ? "32px 16px" : "40px 32px", textAlign: "center" }}>
+      <div style={{ fontSize: isMobile ? 10 : 11, fontWeight: 600, letterSpacing: 4, color: "#999", marginBottom: 20 }}>PHD DISSERTATION DEFENSE</div>
+      <h1 style={{ fontSize: isMobile ? 24 : 38, fontWeight: 700, color: "#1a1a2e", lineHeight: 1.3, maxWidth: 800, marginBottom: 16 }}>
         Designing Multimodal Human-AI Systems to Augment User Cognitive Capability
       </h1>
-      <div style={{ fontSize: 16, color: "#666", marginBottom: 32 }}>Zheng Ning</div>
-      <div style={{ fontSize: 13, color: "#999", marginBottom: 40 }}>University of Notre Dame &middot; Department of Computer Science and Engineering</div>
+      <div style={{ fontSize: isMobile ? 14 : 16, color: "#666", marginBottom: 32 }}>Zheng Ning</div>
+      <div style={{ fontSize: isMobile ? 12 : 13, color: "#999", marginBottom: 40 }}>University of Notre Dame &middot; Department of Computer Science and Engineering</div>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
         {[
           { name: "MIMOSA", color: C.mimosa, venue: "" },
@@ -376,8 +394,8 @@ function TitleSlide() {
           { name: "AROMA", color: C.aroma, venue: "" },
           { name: "TRANSMOGRIFIER", color: C.transmog, venue: "" },
         ].map(s => (
-          <div key={s.name} style={{ padding: "8px 18px", borderRadius: 8, border: `1.5px solid ${s.color}30`, background: `${s.color}06` }}>
-            <span style={{ fontSize: 13, fontWeight: 700, color: s.color }}>{s.name}</span>
+          <div key={s.name} style={{ padding: isMobile ? "6px 12px" : "8px 18px", borderRadius: 8, border: `1.5px solid ${s.color}30`, background: `${s.color}06` }}>
+            <span style={{ fontSize: isMobile ? 11 : 13, fontWeight: 700, color: s.color }}>{s.name}</span>
             <span style={{ fontSize: 10, color: "#999", marginLeft: 8 }}>{s.venue}</span>
           </div>
         ))}
@@ -390,6 +408,7 @@ function TitleSlide() {
    PROBLEM SPACE DIAGRAM (replaces problem-space.png)
    ═══════════════════════════════════════════════════════════════ */
 function ProblemSpaceDiagram() {
+  const isMobile = useIsMobile();
   const [hoveredCell, setHoveredCell] = useState(null);
 
   const scrollTo = (id) => {
@@ -447,18 +466,19 @@ function ProblemSpaceDiagram() {
     <div style={{ maxWidth: 750, margin: "0 auto" }}>
       {rows.map((row, ri) => (
         <div key={ri} style={{
-          display: "flex", alignItems: "center",
+          display: "flex", flexDirection: isMobile ? "column" : "row", alignItems: isMobile ? "stretch" : "center",
           borderBottom: ri < rows.length - 1 ? "1.5px solid #888" : "none",
           paddingBottom: ri < rows.length - 1 ? 22 : 0,
           marginBottom: ri < rows.length - 1 ? 22 : 0,
         }}>
           <div style={{
-            width: 120, fontSize: 13, fontWeight: 600, color: "#666",
+            width: isMobile ? "auto" : 120, fontSize: isMobile ? 12 : 13, fontWeight: 600, color: "#666",
             fontStyle: "italic", lineHeight: 1.4, flexShrink: 0,
+            marginBottom: isMobile ? 8 : 0,
           }}>
             {row.label}
           </div>
-          <div style={{ display: "flex", gap: 14, flex: 1, flexWrap: "wrap", justifyContent: "center" }}>
+          <div style={{ display: "flex", gap: isMobile ? 8 : 14, flex: 1, flexWrap: "wrap", justifyContent: "center" }}>
             {row.cells.map((cell) => {
               const hovered = hoveredCell === cell.id;
               return (
@@ -513,6 +533,7 @@ function ProblemSpaceDiagram() {
    SLIDE 1: MOTIVATION — COGNITION FLOW
    ═══════════════════════════════════════════════════════════════ */
 function CognitionFlow() {
+  const isMobile = useIsMobile();
   const phases = [
     { id: "perception", label: "Perception", Icon: Eye, color: C.mimosa,
       channels: ["Sight", "Hearing", "Touch", "Smell", "Taste"],
@@ -536,7 +557,7 @@ function CognitionFlow() {
             <div key={p.id} style={{ display: "flex", alignItems: "center" }}>
               <div
                 style={{
-                  width: 240, padding: "24px 20px", borderRadius: 12,
+                  width: isMobile ? "100%" : 240, padding: isMobile ? "18px 16px" : "24px 20px", borderRadius: 12,
                   border: `2px solid ${p.color}40`,
                   background: `${p.color}08`,
                   transition: "all 0.3s",
@@ -549,7 +570,7 @@ function CognitionFlow() {
                   <div style={{ fontSize: 11, color: "#555", lineHeight: 1.5 }}>{p.systems}</div>
                 </div>
               </div>
-              {i < 2 && (
+              {i < 2 && !isMobile && (
                 <div style={{ width: 48, display: "flex", alignItems: "center", justifyContent: "center", marginTop: 52 }}>
                   <ArrowRight size={20} color="#ccc" />
                 </div>
@@ -559,7 +580,7 @@ function CognitionFlow() {
         </div>
         {/* Feedback arrow from Expression back to Perception */}
         <svg width="100%" height="56" viewBox="0 0 816 56" preserveAspectRatio="xMidYMin meet"
-          style={{ display: "block", margin: "0 auto", maxWidth: 816, overflow: "visible" }}>
+          style={{ display: isMobile ? "none" : "block", margin: "0 auto", maxWidth: 816, overflow: "visible" }}>
           <defs>
             <marker id="feedback-arrow" viewBox="0 0 10 8" refX="9" refY="4"
               markerWidth="8" markerHeight="6" orient="auto">
@@ -1634,6 +1655,7 @@ function OverarchingFlow() {
 
 /* ── NLQ Empirical Grounding sub-component ── */
 function NLQEvidencePanel({ challenges }) {
+  const isMobile = useIsMobile();
   const alignmentData = [
     { k: 3, correct: 0.36, incorrect: 0.24 },
     { k: 6, correct: 0.54, incorrect: 0.36 },
@@ -1823,7 +1845,7 @@ function NLQEvidencePanel({ challenges }) {
           ))}
         </div>
 
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12, marginTop: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 12, marginTop: 16 }}>
           <div>
             <Figure src="/figures/nlq-attention-alignment.png"
               caption="Attention alignment distributions: correct queries (top, blue) cluster at higher coverage than incorrect queries (bottom, red), confirming that human-model attention misalignment correlates with AI errors (Study 2)"
@@ -1943,14 +1965,15 @@ function PortraitCircle({ name, role, affiliation, img, url, size = 140 }) {
 }
 
 function AcknowledgmentCommitteeSlide() {
+  const isMobile = useIsMobile();
   return (
     <div>
-      <div style={{ fontSize: 14, color: "#555", lineHeight: 1.7, marginBottom: 36, maxWidth: 700, textAlign: "center", margin: "0 auto 36px" }}>
+      <div style={{ fontSize: isMobile ? 13 : 14, color: "#555", lineHeight: 1.7, marginBottom: 36, maxWidth: 700, textAlign: "center", margin: "0 auto 36px" }}>
         I am deeply grateful to my advisor and committee members for their guidance, critical feedback, and continued support throughout this journey.
       </div>
-      <div style={{ display: "flex", justifyContent: "center", gap: 48, flexWrap: "wrap" }}>
+      <div style={{ display: "flex", justifyContent: "center", gap: isMobile ? 20 : 48, flexWrap: "wrap" }}>
         {COMMITTEE.map(m => (
-          <PortraitCircle key={m.name} {...m} size={150} />
+          <PortraitCircle key={m.name} {...m} size={isMobile ? 100 : 150} />
         ))}
       </div>
     </div>
@@ -1994,21 +2017,22 @@ const COLLABORATORS = [
 ];
 
 function AcknowledgmentCollaboratorsSlide() {
+  const isMobile = useIsMobile();
   return (
     <div>
-      <div style={{ fontSize: 14, color: "#555", lineHeight: 1.7, marginBottom: 32, maxWidth: 700, textAlign: "center", margin: "0 auto 32px" }}>
+      <div style={{ fontSize: isMobile ? 13 : 14, color: "#555", lineHeight: 1.7, marginBottom: 32, maxWidth: 700, textAlign: "center", margin: "0 auto 32px" }}>
         I am fortunate to have worked with exceptional mentors and collaborators who brought complementary expertise and perspectives, and more importantly, cherished friendships that will last forever.
       </div>
       <div style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(110px, 1fr))",
-        gap: "24px 12px",
+        gridTemplateColumns: isMobile ? "repeat(auto-fill, minmax(80px, 1fr))" : "repeat(auto-fill, minmax(110px, 1fr))",
+        gap: isMobile ? "16px 8px" : "24px 12px",
         justifyItems: "center",
         maxWidth: 960,
         margin: "0 auto",
       }}>
         {COLLABORATORS.map(c => (
-          <PortraitCircle key={c.name} name={c.name} img={c.img} url={c.url} size={84} />
+          <PortraitCircle key={c.name} name={c.name} img={c.img} url={c.url} size={isMobile ? 60 : 84} />
         ))}
       </div>
     </div>
@@ -2040,21 +2064,22 @@ const ND_FRIENDS = [
 ];
 
 function AcknowledgmentFriendsSlide() {
+  const isMobile = useIsMobile();
   return (
     <div>
-      <div style={{ fontSize: 14, color: "#555", lineHeight: 1.7, marginBottom: 32, maxWidth: 700, textAlign: "center", margin: "0 auto 32px" }}>
+      <div style={{ fontSize: isMobile ? 13 : 14, color: "#555", lineHeight: 1.7, marginBottom: 32, maxWidth: 700, textAlign: "center", margin: "0 auto 32px" }}>
         Thank you to all my best colleagues and friends at Notre Dame who made the doctoral journey both fruitful and enjoyable.
       </div>
       <div style={{
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fill, minmax(110px, 1fr))",
-        gap: "24px 12px",
+        gridTemplateColumns: isMobile ? "repeat(auto-fill, minmax(80px, 1fr))" : "repeat(auto-fill, minmax(110px, 1fr))",
+        gap: isMobile ? "16px 8px" : "24px 12px",
         justifyItems: "center",
         maxWidth: 960,
         margin: "0 auto",
       }}>
         {ND_FRIENDS.map(c => (
-          <PortraitCircle key={c.name} name={c.name} img={c.img} url={c.url} size={84} />
+          <PortraitCircle key={c.name} name={c.name} img={c.img} url={c.url} size={isMobile ? 60 : 84} />
         ))}
       </div>
     </div>
@@ -2085,19 +2110,21 @@ const SECTIONS = [
    LOGIN SCREEN
    ═══════════════════════════════════════════════════════════════ */
 function LoginScreen({ onLogin }) {
+  const isMobile = useIsMobile();
   const [name, setName] = useState("");
   return (
     <div style={{
       minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center",
       fontFamily: "'Inter', -apple-system, sans-serif", background: "#fff",
+      padding: isMobile ? "0 16px" : 0,
     }}>
-        <div style={{ textAlign: "center", maxWidth: 800, padding: "40px 32px" }}>
-          <img src="/nd-logo.png" alt="University of Notre Dame" style={{ height: 140, marginBottom: 32, objectFit: "contain" }} />
-          <div style={{ fontSize: 11, fontWeight: 700, letterSpacing: 4, color: "#999", marginBottom: 20 }}>PHD DISSERTATION DEFENSE</div>
-          <h1 style={{ fontSize: 28, fontWeight: 700, color: "#1a1a2e", lineHeight: 1.35, marginBottom: 12 }}>
+        <div style={{ textAlign: "center", maxWidth: 800, padding: isMobile ? "32px 0" : "40px 32px" }}>
+          <img src="/nd-logo.png" alt="University of Notre Dame" style={{ height: isMobile ? 80 : 140, marginBottom: isMobile ? 20 : 32, objectFit: "contain" }} />
+          <div style={{ fontSize: isMobile ? 10 : 11, fontWeight: 700, letterSpacing: 4, color: "#999", marginBottom: 20 }}>PHD DISSERTATION DEFENSE</div>
+          <h1 style={{ fontSize: isMobile ? 20 : 28, fontWeight: 700, color: "#1a1a2e", lineHeight: 1.35, marginBottom: 12 }}>
             Designing Multimodal Human-AI Systems to Enhance Human Cognitive Capability
           </h1>
-          <div style={{ fontSize: 15, color: "#666", marginBottom: 40 }}>Zheng Ning &middot; University of Notre Dame</div>
+          <div style={{ fontSize: isMobile ? 13 : 15, color: "#666", marginBottom: 40 }}>Zheng Ning &middot; University of Notre Dame</div>
           <div style={{ marginBottom: 12, fontSize: 13, color: "#888" }}>Enter your nick name to join</div>
           <div style={{ display: "flex", gap: 8, maxWidth: 380, margin: "0 auto" }}>
             <input
@@ -2135,6 +2162,7 @@ function isPresenter(name) {
 }
 
 export default function App() {
+  const isMobile = useIsMobile();
   const [activeSection, setActiveSection] = useState("title");
   const [userName, setUserName] = useState(() => {
     try { return sessionStorage.getItem("defense_user") || ""; } catch { return ""; }
@@ -2144,7 +2172,7 @@ export default function App() {
   const [chatUnread, setChatUnread] = useState(0);
   const [chatMode, setChatMode] = useState("panel");
   const [showOutline, setShowOutline] = useState(true);
-  const squeezed = chatOpen && chatMode === "panel";
+  const squeezed = !isMobile && chatOpen && chatMode === "panel";
 
   const handleLogin = (name) => {
     setUserName(name);
@@ -2251,7 +2279,7 @@ export default function App() {
 
       </div>
 
-      <ChatRoom userName={userName} isOpen={chatOpen} onClose={() => setChatOpen(false)} onUnreadChange={setChatUnread} mode={chatMode} onModeChange={setChatMode} />
+      <ChatRoom userName={userName} isOpen={chatOpen} onClose={() => setChatOpen(false)} onUnreadChange={setChatUnread} mode={isMobile ? "float" : chatMode} onModeChange={setChatMode} />
     </div>
   );
 }

@@ -62,3 +62,9 @@ body {
   background: rgba(58, 124, 165, 0.15);
   color: #1a1a2e;
 }
+
+/* ─── Mobile responsive ─── */
+@media (max-width: 768px) {
+  /* Viewport meta handled in index.html */
+  body { -webkit-text-size-adjust: 100%; }
+}

@@ -2,6 +2,19 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "./supabase";
 import { MessageSquare, Send, ArrowLeft, ChevronRight, Bot, User, Clock, X, Maximize2, PanelRight } from "lucide-react";
 
+function useIsMobile(breakpoint = 768) {
+  const [isMobile, setIsMobile] = useState(() =>
+    typeof window !== "undefined" ? window.innerWidth <= breakpoint : false
+  );
+  useEffect(() => {
+    const mq = window.matchMedia(`(max-width: ${breakpoint}px)`);
+    const handler = (e) => setIsMobile(e.matches);
+    mq.addEventListener("change", handler);
+    return () => mq.removeEventListener("change", handler);
+  }, [breakpoint]);
+  return isMobile;
+}
+
 const C = {
   charcoal: "#2d2d2d", gray: "#888", lightGray: "#f5f5f5", border: "#e0e0e0",
   blue: "#2980B9", green: "#27ae60", botBg: "rgba(245,245,245,0.6)",
@@ -36,7 +49,7 @@ function timeAgo(dateStr) {
 /* ═══════════════════════════════════════
    THREAD LIST (sidebar panel)
    ═══════════════════════════════════════ */
-function ThreadList({ threads, activeThreadId, onOpenThread, userName }) {
+function ThreadList({ threads, activeThreadId, onOpenThread, userName, isMobile }) {
   const [newQ, setNewQ] = useState("");
   const [posting, setPosting] = useState(false);
 
@@ -62,7 +75,7 @@ function ThreadList({ threads, activeThreadId, onOpenThread, userName }) {
 
   return (
     <div style={{
-      width: 220, background: C.sidebar, display: "flex", flexDirection: "column",
+      width: isMobile ? 160 : 220, background: C.sidebar, display: "flex", flexDirection: "column",
       borderRight: "1px solid #e0e0e0", flexShrink: 0,
     }}>
       {/* Header */}
@@ -355,6 +368,7 @@ function useDrag(initialPos) {
 export const PANEL_WIDTH = 520;
 
 export default function ChatRoom({ userName, isOpen, onClose, onUnreadChange, mode, onModeChange }) {
+  const isMobile = useIsMobile();
   const [threads, setThreads] = useState([]);
   const [activeThread, setActiveThread] = useState(null);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -479,7 +493,7 @@ export default function ChatRoom({ userName, isOpen, onClose, onUnreadChange, mo
       <div style={{ flex: 1, padding: "8px 12px", fontSize: 11, fontWeight: 600, color: C.charcoal, letterSpacing: 0.5 }}>
         Thesis Q&A
       </div>
-      <button
+      {!isMobile && <button
         onClick={() => {
           const next = mode === "panel" ? "float" : "panel";
           if (next === "float") {
@@ -502,7 +516,7 @@ export default function ChatRoom({ userName, isOpen, onClose, onUnreadChange, mo
         onMouseLeave={e => e.currentTarget.style.color = "#aaa"}
       >
         {mode === "panel" ? <Maximize2 size={13} /> : <PanelRight size={13} />}
-      </button>
+      </button>}
       <button onClick={onClose} aria-label="Close chat"
         style={{
           background: "none", border: "none", color: "#aaa",
@@ -524,6 +538,7 @@ export default function ChatRoom({ userName, isOpen, onClose, onUnreadChange, mo
         activeThreadId={activeThread?.id}
         onOpenThread={setActiveThread}
         userName={userName}
+        isMobile={isMobile}
       />
       <MessagePanel
         thread={activeThread}
@@ -565,19 +580,21 @@ export default function ChatRoom({ userName, isOpen, onClose, onUnreadChange, mo
 
   return (
     <div style={{
-      position: "fixed", left: panelPos.x, top: panelPos.y, zIndex: 900,
-      width: panelSize.w, height: panelSize.h,
-      borderRadius: 14, overflow: "hidden",
+      position: "fixed", zIndex: 900,
+      ...(isMobile
+        ? { left: 0, top: 0, width: "100vw", height: "100vh", borderRadius: 0 }
+        : { left: panelPos.x, top: panelPos.y, width: panelSize.w, height: panelSize.h, borderRadius: 14 }),
+      overflow: "hidden",
       background: "rgba(255,255,255,0.95)",
       backdropFilter: "blur(18px)", WebkitBackdropFilter: "blur(18px)",
-      border: "1px solid #e0e0e0",
-      boxShadow: "0 8px 40px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.05)",
+      border: isMobile ? "none" : "1px solid #e0e0e0",
+      boxShadow: isMobile ? "none" : "0 8px 40px rgba(0,0,0,0.1), 0 2px 8px rgba(0,0,0,0.05)",
       display: "flex", flexDirection: "column",
       animation: "chatWidgetIn 0.2s ease-out",
     }}>
       {titleBar}
       {chatBody}
-      {edgeHandles.map(({ edge, style }) => (
+      {!isMobile && edgeHandles.map(({ edge, style }) => (
         <div key={edge} onPointerDown={onEdgePointerDown(edge)}
           style={{ position: "absolute", touchAction: "none", zIndex: 10, ...style }} />
       ))}

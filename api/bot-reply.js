@@ -112,6 +112,42 @@ export default async function handler(req, res) {
       .eq("thread_id", thread_id)
       .order("created_at", { ascending: true });
 
+    // Fetch all OTHER threads + their messages for cross-thread awareness
+    const { data: otherThreads } = await supabase
+      .from("threads")
+      .select("*")
+      .neq("id", thread_id)
+      .order("created_at", { ascending: false })
+      .limit(20);
+
+    let crossThreadContext = "";
+    if (otherThreads && otherThreads.length > 0) {
+      const otherThreadIds = otherThreads.map((t) => t.id);
+      const { data: otherMessages } = await supabase
+        .from("messages")
+        .select("*")
+        .in("thread_id", otherThreadIds)
+        .order("created_at", { ascending: true });
+
+      // Group messages by thread
+      const msgsByThread = {};
+      for (const m of otherMessages || []) {
+        if (!msgsByThread[m.thread_id]) msgsByThread[m.thread_id] = [];
+        msgsByThread[m.thread_id].push(m);
+      }
+
+      // Build cross-thread summary
+      const threadSummaries = otherThreads.map((t) => {
+        const msgs = msgsByThread[t.id] || [];
+        const convo = msgs
+          .map((m) => `  ${m.is_bot ? "Ning" : m.user_name}: ${m.content}`)
+          .join("\n");
+        return `[Thread by ${t.user_name}]: "${t.question}"\n${convo || "  (no replies yet)"}`;
+      });
+
+      crossThreadContext = `\n=== OTHER Q&A THREADS FROM THIS DEFENSE SESSION ===\nYou can reference these conversations if relevant. You're aware of all questions asked during this defense.\n\n${threadSummaries.join("\n\n")}\n=== END OTHER THREADS ===\n`;
+    }
+
     // Build the query for RAG retrieval
     // Combine the original question with any unanswered follow-ups
     let ragQuery = thread.question;
@@ -134,7 +170,7 @@ export default async function handler(req, res) {
     const ragContext = await retrieveContext(ragQuery);
 
     // Build conversation for the LLM
-    const systemPrompt = BASE_SYSTEM_PROMPT + ragContext;
+    const systemPrompt = BASE_SYSTEM_PROMPT + ragContext + crossThreadContext;
 
     const conversationMessages = [
       { role: "system", content: systemPrompt },
@@ -160,7 +196,7 @@ export default async function handler(req, res) {
     conversationMessages.push({
       role: "system",
       content:
-        "Reply to the latest message. Consider all prior conversation in the thread for full context.",
+        "Reply to the latest message. Consider all prior conversation in the thread for full context. You have access to all other Q&A threads from this defense session — reference them if relevant.",
     });
 
     // Call OpenAI Responses API (supports built-in web search)

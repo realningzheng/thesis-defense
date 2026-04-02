@@ -33,8 +33,9 @@ function useIsMobile(breakpoint = 768) {
 const PROJECT_LINKS = {
   mimosa: { paper: "https://arxiv.org/abs/2404.15107", site: "https://zning.co/mimosa" },
   spica: { paper: "https://arxiv.org/abs/2402.07300", site: "https://sites.google.com/nd.edu/spica" },
-  aroma: { paper: "https://arxiv.org/abs/2507.10963", site: "https://zning.co/aroma" },
-  transmog: { paper: null, site: "https://zning.co/transmogrifier" },
+  aroma: { paper: "https://arxiv.org/abs/2507.10963", video: "https://www.youtube.com/watch?v=GGj-Asfx2Ew" },
+  transmog: { paper: null, site: null },
+  nlqStudy: { paper: null, site: null },
 };
 
 /* ═══════════════════════════════════════════════════════════════
@@ -375,6 +376,21 @@ function ComparisonBar({ label, valueA, valueB, labelA, labelB, max = 7, color, 
 }
 
 /* ═══════════════════════════════════════════════════════════════
+   CENTRAL ARGUMENT (shown right after title)
+   ═══════════════════════════════════════════════════════════════ */
+function CentralArgumentSlide() {
+  const isMobile = useIsMobile();
+  return (
+    <div style={{ padding: 24, borderRadius: 12, background: "#fafafa", border: "1px solid #e0e0e0", textAlign: "center", maxWidth: 800, margin: "0 auto" }}>
+      <div style={{ fontSize: 10, fontWeight: 700, color: "#999", letterSpacing: 2, marginBottom: 10 }}>THESIS STATEMENT</div>
+      <div style={{ fontSize: isMobile ? 14 : 16, color: C.charcoal, lineHeight: 1.7, fontWeight: 500, maxWidth: 700, margin: "0 auto" }}>
+        AI-enabled interactive systems can effectively augment human cognition in multimodal workflows by exposing <strong style={{ color: C.spica }}>intermediate AI-generated results</strong> and surfacing them in <strong style={{ color: C.spica }}>controllable interface elements</strong>. This allows users to <strong style={{ color: "#D4A017" }}>perceive, verify, and adjust</strong> outputs with their own sensory and expressive capabilities. The design principle of balancing <strong style={{ color: C.spica }}>data-driven system performance</strong> and <strong style={{ color: C.spica }}>human-centered values</strong> such as <strong style={{ color: "#D4A017" }}>usability, trust, agency, and safety</strong> generalizes across diverse user groups and application domains, from creative video production to accessibility and knowledge work.
+      </div>
+    </div>
+  );
+}
+
+/* ═══════════════════════════════════════════════════════════════
    SLIDE 0: TITLE
    ═══════════════════════════════════════════════════════════════ */
 function TitleSlide() {
@@ -389,14 +405,15 @@ function TitleSlide() {
       <div style={{ fontSize: isMobile ? 12 : 13, color: "#999", marginBottom: 40 }}>University of Notre Dame &middot; Department of Computer Science and Engineering</div>
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", justifyContent: "center" }}>
         {[
+          { name: "NL2SQL", color: "#7c6bc4", venue: "" },
           { name: "MIMOSA", color: C.mimosa, venue: "" },
           { name: "SPICA", color: C.spica, venue: "" },
           { name: "AROMA", color: C.aroma, venue: "" },
           { name: "TRANSMOGRIFIER", color: C.transmog, venue: "" },
         ].map(s => (
-          <div key={s.name} style={{ padding: isMobile ? "6px 12px" : "8px 18px", borderRadius: 8, border: `1.5px solid ${s.color}30`, background: `${s.color}06` }}>
-            <span style={{ fontSize: isMobile ? 11 : 13, fontWeight: 700, color: s.color }}>{s.name}</span>
-            <span style={{ fontSize: 10, color: "#999", marginLeft: 8 }}>{s.venue}</span>
+          <div key={s.name} style={{ display: "flex", alignItems: "center", justifyContent: "center", padding: isMobile ? "6px 12px" : "8px 18px", borderRadius: 8, border: `1.5px solid #ddd`, background: `${s.color}06` }}>
+            <span style={{ fontSize: isMobile ? 11 : 13, fontWeight: 500, color: C.charcoal }}>{s.name}</span>
+            {s.venue && <span style={{ fontSize: 10, color: "#999", marginLeft: 8 }}>{s.venue}</span>}
           </div>
         ))}
       </div>
@@ -523,7 +540,7 @@ function ProblemSpaceDiagram() {
         </div>
       ))}
       <div style={{ textAlign: "center", fontSize: 11, color: "#999", marginTop: 14, fontStyle: "italic" }}>
-        Problem Space — Click system badges to navigate to corresponding sections
+        {/* Problem Space — Click system badges to navigate to corresponding sections */}
       </div>
     </div>
   );
@@ -532,21 +549,57 @@ function ProblemSpaceDiagram() {
 /* ═══════════════════════════════════════════════════════════════
    SLIDE 1: MOTIVATION — COGNITION FLOW
    ═══════════════════════════════════════════════════════════════ */
+function PhaseCard({ phase: p, index: i, total, isMobile }) {
+  const [hovered, setHovered] = useState(false);
+  return (
+    <div style={{ display: "flex", alignItems: "center" }}>
+      <div
+        onMouseEnter={() => setHovered(true)}
+        onMouseLeave={() => setHovered(false)}
+        style={{
+          width: isMobile ? "100%" : 240, padding: isMobile ? "18px 16px" : "24px 20px", borderRadius: 12,
+          border: `2px solid ${p.color}40`,
+          background: `${p.color}08`,
+          transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)",
+          transform: hovered ? "scale(1.06)" : "scale(1)",
+          boxShadow: hovered ? `0 8px 24px ${p.color}20` : "none",
+          cursor: "default",
+        }}>
+        <div style={{ textAlign: "center", marginBottom: 8 }}><p.Icon size={32} color={p.color} strokeWidth={1.5} /></div>
+        <div style={{ fontSize: 15, fontWeight: 700, textAlign: "center", color: p.color }}>{p.label}</div>
+        <div style={{ fontSize: 11, color: "#888", textAlign: "center", marginTop: 6 }}>{p.channels.join(" · ")}</div>
+        <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid #e0e0e0" }}>
+          <div style={{ fontSize: 12, color: p.color, fontStyle: "italic", lineHeight: 1.5, marginBottom: 8 }}>&ldquo;{p.challenge}&rdquo;</div>
+          <div style={{ fontSize: 11, color: "#555", lineHeight: 1.5 }}>{p.systems}</div>
+        </div>
+      </div>
+      {i < total - 1 && !isMobile && (
+        <div style={{ width: 48, display: "flex", alignItems: "center", justifyContent: "center", marginTop: 52 }}>
+          <ArrowRight size={20} color="#ccc" />
+        </div>
+      )}
+    </div>
+  );
+}
+
 function CognitionFlow() {
   const isMobile = useIsMobile();
   const phases = [
     { id: "perception", label: "Perception", Icon: Eye, color: C.mimosa,
       channels: ["Sight", "Hearing", "Touch", "Smell", "Taste"],
       challenge: "A low-vision cook hears sizzling but cannot see browning",
-      systems: "MIMOSA uses visual cues; SPICA adds spatial audio; AROMA leverages non-visual senses" },
+      // systems: "MIMOSA uses visual cues; SPICA adds spatial audio; AROMA leverages non-visual senses" 
+    },
     { id: "cognition", label: "Cognition", Icon: Brain, color: C.charcoal,
       channels: ["Reasoning", "Decision-making", "Mental models", "Working memory"],
-      challenge: "Missing channels amplify cognitive burden on reasoning",
-      systems: "All four systems reduce cognitive load by coordinating channels" },
+      challenge: "Missing channels, or errors from one perception channels amplify cognitive burden on reasoning",
+      // systems: "All four systems reduce cognitive load by coordinating channels" 
+    },
     { id: "expression", label: "Expression", Icon: MessageSquare, color: C.transmog,
       channels: ["Speech", "Writing", "Gesture", "Manipulation"],
-      challenge: "A non-speaking user must type timing-sensitive commands",
-      systems: "AROMA uses voice; MIMOSA uses drag; TRANSMOGRIFIER uses direct editing" },
+      challenge: "A patient must convey subtle symptoms like skin texture or swelling through verbal description alone during a remote consultation",
+      // systems: "AROMA uses voice; MIMOSA uses drag; TRANSMOGRIFIER uses direct editing" 
+    },
   ];
 
   return (
@@ -554,28 +607,7 @@ function CognitionFlow() {
       <div style={{ position: "relative" }}>
         <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "center", gap: 0, flexWrap: "wrap" }}>
           {phases.map((p, i) => (
-            <div key={p.id} style={{ display: "flex", alignItems: "center" }}>
-              <div
-                style={{
-                  width: isMobile ? "100%" : 240, padding: isMobile ? "18px 16px" : "24px 20px", borderRadius: 12,
-                  border: `2px solid ${p.color}40`,
-                  background: `${p.color}08`,
-                  transition: "all 0.3s",
-                }}>
-                <div style={{ textAlign: "center", marginBottom: 8 }}><p.Icon size={32} color={p.color} strokeWidth={1.5} /></div>
-                <div style={{ fontSize: 15, fontWeight: 700, textAlign: "center", color: p.color }}>{p.label}</div>
-                <div style={{ fontSize: 11, color: "#888", textAlign: "center", marginTop: 6 }}>{p.channels.join(" · ")}</div>
-                <div style={{ marginTop: 14, paddingTop: 12, borderTop: "1px solid #e0e0e0" }}>
-                  <div style={{ fontSize: 12, color: p.color, fontStyle: "italic", lineHeight: 1.5, marginBottom: 8 }}>&ldquo;{p.challenge}&rdquo;</div>
-                  <div style={{ fontSize: 11, color: "#555", lineHeight: 1.5 }}>{p.systems}</div>
-                </div>
-              </div>
-              {i < 2 && !isMobile && (
-                <div style={{ width: 48, display: "flex", alignItems: "center", justifyContent: "center", marginTop: 52 }}>
-                  <ArrowRight size={20} color="#ccc" />
-                </div>
-              )}
-            </div>
+            <PhaseCard key={p.id} phase={p} index={i} total={phases.length} isMobile={isMobile} />
           ))}
         </div>
         {/* Feedback arrow from Expression back to Perception */}
@@ -594,12 +626,9 @@ function CognitionFlow() {
           />
           <text x="408" y="48" textAnchor="middle"
             style={{ fontSize: 11, fill: "#999", fontStyle: "italic" }}>
-            Feedback loop
+            {/* Feedback loop */}
           </text>
         </svg>
-      </div>
-      <div style={{ marginTop: 32 }}>
-        <ProblemSpaceDiagram />
       </div>
     </div>
   );
@@ -608,49 +637,73 @@ function CognitionFlow() {
 /* ═══════════════════════════════════════════════════════════════
    SLIDE 2: THESIS OVERVIEW
    ═══════════════════════════════════════════════════════════════ */
+function OverviewCard({ item, onClick }) {
+  const [hovered, setHovered] = useState(false);
+  const links = PROJECT_LINKS[item.id] || {};
+  return (
+    <div
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
+      onClick={onClick}
+      style={{
+        flex: "1 1 200px", padding: "18px 16px", borderRadius: 10,
+        border: `2px solid ${item.color}40`,
+        background: `${item.color}08`,
+        transition: "all 0.3s cubic-bezier(0.4,0,0.2,1)",
+        transform: hovered ? "scale(1.06)" : "scale(1)",
+        boxShadow: hovered ? `0 8px 24px ${item.color}20` : "none",
+        cursor: onClick ? "pointer" : "default",
+        zIndex: hovered ? 2 : 1,
+        position: "relative",
+      }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+        <span style={{ fontSize: 14, fontWeight: 700, color: item.color }}>{item.name}</span>
+        {item.venue && <span style={{ fontSize: 10, color: "#999", background: "#f5f5f5", padding: "2px 8px", borderRadius: 10 }}>{item.venue}</span>}
+      </div>
+      <div style={{ fontSize: 12, color: "#555" }}>{item.domain}</div>
+      <div style={{ fontSize: 11, color: "#999", marginTop: 4 }}>{item.users}</div>
+      <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${item.color}20` }}>
+        <div style={{ fontSize: 12, fontWeight: 600, color: item.color, marginBottom: 4 }}>Key Thesis Contribution</div>
+        <div style={{ fontSize: 12, color: "#333", lineHeight: 1.6, fontStyle: "italic" }}>{item.thesis}</div>
+        <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
+          {links.site && <LinkBtn href={links.site} color={item.color}><ExternalLink size={11} /> Project</LinkBtn>}
+          {links.paper && <LinkBtn href={links.paper} color={item.color}><ExternalLink size={11} /> Paper</LinkBtn>}
+          {links.video && <LinkBtn href={links.video} color={item.color}><ExternalLink size={11} /> Video</LinkBtn>}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function ThesisOverview() {
-  const systems = [
-    { id: "mimosa", name: "MIMOSA", color: C.mimosa, venue: "C&C '24", domain: "Spatial Audio for Videos", users: "Amateur video creators",
-      thesis: "Decomposing opaque pipelines enables error detection, repair, and creative augmentation without prior expertise.",
-      challenges: ["Error Handling", "Cognitive Load", "Diverse Capabilities"] },
-    { id: "spica", name: "SPICA", color: C.spica, venue: "CHI '24", domain: "Video Access for BLV Users", users: "Blind or low-vision viewers",
-      thesis: "Restructuring accessibility from passive description to active multi-granularity exploration improves comprehension and engagement.",
-      challenges: ["Error Handling", "Cognitive Load", "Diverse Capabilities"] },
-    { id: "aroma", name: "AROMA", color: C.aroma, venue: "UIST '25", domain: "Non-Visual Cooking Assistance", users: "Blind or low-vision cooks",
-      thesis: "Most effective support occurs when the system validates and extends users' own embodied perceptual inferences.",
-      challenges: ["Error Handling", "Cognitive Load", "Diverse Capabilities"] },
-    { id: "transmog", name: "TRANSMOGRIFIER", color: C.transmog, venue: "", domain: "Knowledge Work", users: "Professional content creators",
-      thesis: "Generative AI can manage semantic coherence across modalities when changes are kept inspectable and reversible.",
-      challenges: ["Error Handling", "Cognitive Load", "Diverse Capabilities"] },
+  const items = [
+    { id: "mimosa", name: "MIMOSA", color: C.mimosa, venue: "", domain: "Spatial Audio for Videos", users: "Amateur video creators",
+      thesis: "Decomposing opaque pipelines enables error detection, repair, and creative augmentation without prior expertise." },
+    { id: "spica", name: "SPICA", color: C.spica, venue: "", domain: "Video Access for BLV Users", users: "Blind or low-vision viewers",
+      thesis: "Restructuring accessibility from passive description to active multi-granularity exploration improves comprehension and engagement." },
+    { id: "aroma", name: "AROMA", color: C.aroma, venue: "", domain: "Non-Visual Cooking Assistance", users: "Blind or low-vision cooks",
+      thesis: "Most effective support occurs when the system validates and extends users' own embodied perceptual inferences." },
+    { id: "transmog", name: "TRANSMOGRIFIER", color: C.transmog, venue: "", domain: "Knowledge Work", users: "Professional knowledge workers",
+      thesis: "Generative AI can manage semantic coherence across modalities when changes are kept inspectable and reversible." },
+    { id: "nlqStudy", name: "NL2SQL ERROR STUDY", color: "#7c6bc4", venue: "", domain: "Empirical Grounding", users: "26 participants, 4 NL2SQL models",
+      thesis: "Independent evidence for design principles: 48-type error taxonomy, human-model attention alignment analysis, and evaluation of error-handling mechanisms." },
   ];
+
+  const systems = items.filter(s => s.id !== "nlqStudy");
+  const nlq = items.find(s => s.id === "nlqStudy");
 
   return (
     <div>
-      <div style={{ display: "flex", gap: 10, marginBottom: 24, flexWrap: "wrap" }}>
+      <ProblemSpaceDiagram />
+      <div style={{ display: "flex", gap: 10, marginBottom: 24, marginTop: 32, flexWrap: "wrap" }}>
         {systems.map(s => (
-          <div key={s.id}
-            style={{
-              flex: "1 1 200px", padding: "18px 16px", borderRadius: 10,
-              border: `2px solid ${s.color}40`,
-              background: `${s.color}08`,
-              transition: "all 0.25s",
-            }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-              <span style={{ fontSize: 14, fontWeight: 700, color: s.color }}>{s.name}</span>
-              <span style={{ fontSize: 10, color: "#999", background: "#f5f5f5", padding: "2px 8px", borderRadius: 10 }}>{s.venue}</span>
-            </div>
-            <div style={{ fontSize: 12, color: "#555" }}>{s.domain}</div>
-            <div style={{ fontSize: 11, color: "#999", marginTop: 4 }}>{s.users}</div>
-            <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${s.color}20` }}>
-              <div style={{ fontSize: 12, fontWeight: 600, color: s.color, marginBottom: 4 }}>Key Thesis Contribution</div>
-              <div style={{ fontSize: 12, color: "#333", lineHeight: 1.6, fontStyle: "italic" }}>{s.thesis}</div>
-              <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
-                {PROJECT_LINKS[s.id]?.site && <LinkBtn href={PROJECT_LINKS[s.id].site} color={s.color}><ExternalLink size={11} /> Project</LinkBtn>}
-                {PROJECT_LINKS[s.id]?.paper && <LinkBtn href={PROJECT_LINKS[s.id].paper} color={s.color}><ExternalLink size={11} /> Paper</LinkBtn>}
-              </div>
-            </div>
-          </div>
+          <OverviewCard key={s.id} item={s} />
         ))}
+      </div>
+      <h2 style={{ fontSize: 30, fontWeight: 700, color: "#1a1a2e", marginBottom: 8, lineHeight: 1.25 }}>One Empirical Study on Error-Handling in Human-AI Interaction</h2>
+      <p style={{ fontSize: 14, color: "#666", marginBottom: 20, maxWidth: 780, lineHeight: 1.7 }}>An empirical study into NL2SQL errors that grounds the design principles derived from the four systems.</p>
+      <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+        <OverviewCard item={nlq} />
       </div>
     </div>
   );
@@ -839,14 +892,7 @@ function SpicaSlides() {
             consumption to active exploration</strong>&mdash;providing layered, multi-granularity access: frame-level captions
             for temporal navigation, and object-level descriptions with touch and keyboard exploration for spatial understanding.
           </div>
-          <div style={{ display: "flex", gap: 12, marginBottom: 28, flexWrap: "wrap" }}>
-            <StatCard label="BLV PARTICIPANTS" value="14" sub="user study" color={C.spica} />
-            <StatCard label="EASE OF USE" value="6.29/7" sub="σ = 0.99" color={C.spica} />
-            <StatCard label="USEFULNESS" value="6.79/7" sub="σ = 0.43" color={C.spica} />
-            <StatCard label="UNDERSTANDING" value="6.11" sub="vs. 4.79 baseline (p=0.033)" color={C.spica} />
-          </div>
-          <Figure src="/figures/spica-ui.png" caption="SPICA interface: video player with color overlay, frame-level captions, and object-level descriptions" />
-          <div style={{ marginTop: 20 }}>
+          <div style={{ marginTop: 20, marginBottom: 24 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: C.charcoal, marginBottom: 10 }}>Addressing Three Limitations of Static Audio Descriptions</div>
             {[
               ["Content Depth", "ADs cover only key moments — users want details about 'less important' objects too. SPICA provides on-demand object-level exploration so users choose what to investigate"],
@@ -859,6 +905,7 @@ function SpicaSlides() {
               </div>
             ))}
           </div>
+          <Figure src="/figures/spica-ui.png" caption="SPICA interface: video player with color overlay, frame-level captions, and object-level descriptions" />
       </div>
 
       <div style={{ height: 1, background: "#e8e8e8", margin: "32px 0" }} />
@@ -906,7 +953,13 @@ function SpicaSlides() {
             <StatCard label="DESCRIPTION QUALITY" value="5.10/7" sub="vs. 3.91 baseline (p<0.001)" color={C.spica} />
           </div>
           <Figure src="/figures/spica-barchart.png" caption="SPICA vs. Baseline: understanding and immersion ratings from 14 BLV participants" maxW={650} />
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.charcoal, marginBottom: 12, marginTop: 24 }}>User Study (N=14 BLV, 7-point Likert)</div>
+          <div style={{ display: "flex", gap: 12, marginBottom: 24, marginTop: 24, flexWrap: "wrap" }}>
+            <StatCard label="BLV PARTICIPANTS" value="14" sub="user study" color={C.spica} />
+            <StatCard label="EASE OF USE" value="6.29/7" sub="σ = 0.99" color={C.spica} />
+            <StatCard label="USEFULNESS" value="6.79/7" sub="σ = 0.43" color={C.spica} />
+            <StatCard label="UNDERSTANDING" value="6.11" sub="vs. 4.79 baseline (p=0.033)" color={C.spica} />
+          </div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.charcoal, marginBottom: 12 }}>User Study (N=14 BLV, 7-point Likert)</div>
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 12 }}>
             <div style={{ padding: 16, borderRadius: 10, background: "#fafafa", border: "1px solid #eee" }}>
               <div style={{ fontSize: 11, fontWeight: 700, color: "#999", letterSpacing: 1, marginBottom: 10 }}>CORE USABILITY</div>
@@ -1272,8 +1325,8 @@ function TransmogrifierSlides() {
           <div style={{ display: "flex", gap: 12, marginBottom: 28, flexWrap: "wrap" }}>
             <StatCard label="PROFESSIONALS" value="6" sub="probe-to-prototype study" color={C.transmog} />
             <StatCard label="CONCEPTS" value="22" sub="workflow concepts proposed" color={C.transmog} />
-            <StatCard label="MODELS" value="GPT-4o" sub="+ Stable Diffusion" color={C.transmog} />
-            <StatCard label="GPU" value="RTX 4090" sub="NVIDIA GeForce" color={C.transmog} />
+            {/* <StatCard label="MODELS" value="GPT-4o" sub="+ Stable Diffusion" color={C.transmog} />
+            <StatCard label="GPU" value="RTX 4090" sub="NVIDIA GeForce" color={C.transmog} /> */}
           </div>
           <Figure src="/figures/transmogrifier-workflow.png" caption="TRANSMOGRIFIER: Interpretive linking across text, charts, and images with semantic propagation" />
       </div>
@@ -1888,23 +1941,6 @@ function ConclusionSlide() {
           </div>
         ))}
       </div>
-      <div style={{ padding: 24, borderRadius: 12, background: "#fafafa", border: "1px solid #e0e0e0", textAlign: "center" }}>
-        <div style={{ fontSize: 10, fontWeight: 700, color: "#999", letterSpacing: 2, marginBottom: 10 }}>CENTRAL ARGUMENT</div>
-        <div style={{ fontSize: 16, color: C.charcoal, lineHeight: 1.7, fontWeight: 500, maxWidth: 700, margin: "0 auto" }}>
-          Rather than optimizing for model autonomy, evidence consistently favors optimizing the
-          <strong style={{ color: C.mimosa }}> quality of human-AI coupling</strong>:
-          the model contributes scale, speed, and cross-modal transformation;
-          the human contributes embodied expertise, contextual judgment, and perceptual grounding.
-        </div>
-      </div>
-      <div style={{ marginTop: 32, padding: 20, background: `${C.charcoal}04`, borderRadius: 10, textAlign: "center" }}>
-        <div style={{ fontSize: 13, color: "#555", lineHeight: 1.7, fontStyle: "italic", maxWidth: 680, margin: "0 auto", marginBottom: 16 }}>
-          Building such symbiosis requires advancing not only the AI &ldquo;brain&rdquo; but also the multimodal
-          &ldquo;nervous system&rdquo; that connects AI capabilities with human cognition. This dissertation contributes
-          four instantiations of that coupling layer across creative production, accessibility, embodied assistance, and knowledge work.
-        </div>
-        <div style={{ fontSize: 12, color: "#999", marginTop: 8 }}>Zheng Ning &middot; University of Notre Dame &middot; Advisor: Toby Jia-Jun Li</div>
-      </div>
     </div>
   );
 }
@@ -2091,6 +2127,7 @@ function AcknowledgmentFriendsSlide() {
    ═══════════════════════════════════════════════════════════════ */
 const SECTIONS = [
   { id: "title", label: "Title", depth: 0 },
+  { id: "thesis-statement", label: "Thesis Statement", depth: 0 },
   { id: "motivation", label: "Motivation", depth: 0 },
   { id: "overview", label: "Overview", depth: 0 },
   { id: "mimosa", label: "MIMOSA", depth: 1, color: C.mimosa },
@@ -2216,13 +2253,17 @@ export default function App() {
 
       <TitleSlide />
 
+      <Section id="thesis-statement" label="" title="">
+        <CentralArgumentSlide />
+      </Section>
+
       <Section id="motivation" label="Motivation" title="Human Cognition Is Inherently Multimodal"
-        subtitle="When multimodal channels are missing or misaligned, three recurring challenges emerge: error handling, cognitive load, and accommodating diverse capabilities.">
+        subtitle="When multimodal channels are missing or misaligned, recurring challenges emerge: cognitive load, error handling, accommodating diverse capabilities etc.">
         <CognitionFlow />
       </Section>
 
-      <Section id="overview" label="Dissertation" title="Four Systems Across Diverse Domains"
-        subtitle="Each system addresses a different domain while tackling the same three recurring challenges through different coupling strategies.">
+      <Section id="overview" label="Overview" title="Four Systems Across Diverse Domains"
+        subtitle="Each system addresses a different domain while tackling similar recurring challenges through different coupling strategies.">
         <ThesisOverview />
       </Section>
 
@@ -2261,7 +2302,7 @@ export default function App() {
         <OverarchingFlow />
       </Section>
 
-      <Section id="conclusion" label="Conclusion" title="Contributions & Central Argument">
+      <Section id="conclusion" label="Conclusion" title="Contribution">
         <ConclusionSlide />
       </Section>
 

@@ -108,7 +108,7 @@ function OnlineBadge({ users, onClick, unreadCount = 0 }) {
 /* ═══════════════════════════════════════
    MAIN PRESENCE COMPONENT
    ═══════════════════════════════════════ */
-export default function Presence({ userName, activeSection, showRemoteCursors = true }) {
+export default function Presence({ userName, activeSection, showRemoteCursors = true, onPresenterCursorChange }) {
   const [onlineUsers, setOnlineUsers] = useState([]);
   const [cursors, setCursors] = useState({});
   const channelRef = useRef(null);
@@ -134,6 +134,9 @@ export default function Presence({ userName, activeSection, showRemoteCursors = 
       .on("broadcast", { event: "cursor" }, ({ payload }) => {
         if (payload.name !== userName) {
           setCursors(prev => ({ ...prev, [payload.name]: payload }));
+          if (payload.isPresenter && onPresenterCursorChange) {
+            onPresenterCursorChange({ name: payload.name, x: payload.x, y: payload.y });
+          }
         }
       })
       .subscribe(async (status) => {

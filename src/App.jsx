@@ -3,7 +3,7 @@ import {
   ExternalLink,
   Eye, Brain, MessageSquare, AlertTriangle, Users, Zap,
   Mic, Camera, BookOpen, Layers, ArrowRight, Quote,
-  BarChart3, CheckCircle2, Lightbulb, Target, Workflow, LogIn, List
+  BarChart3, CheckCircle2, Lightbulb, Target, Workflow, LogIn, List, Navigation
 } from "lucide-react";
 import ChatRoom, { PANEL_WIDTH } from "./ChatRoom";
 import Presence from "./Presence";
@@ -89,7 +89,7 @@ function OutlineSidebar({ sections, activeId, onNav }) {
   );
 }
 
-function TopBar({ isPresenterUser, showRemoteCursors, onToggleCursors, chatOpen, onToggleChat, chatUnread, showOutline, onToggleOutline }) {
+function TopBar({ isPresenterUser, showRemoteCursors, onToggleCursors, chatOpen, onToggleChat, chatUnread, showOutline, onToggleOutline, onFollowPresenter }) {
   const isMobile = useIsMobile();
   return (
     <div style={{
@@ -124,6 +124,22 @@ function TopBar({ isPresenterUser, showRemoteCursors, onToggleCursors, chatOpen,
             <List size={14} color={showOutline ? C.charcoal : "#888"} />
             <span style={{ fontSize: 11, fontWeight: 600, color: showOutline ? C.charcoal : "#888" }}>Outline</span>
           </div>}
+
+          {!isPresenterUser && (
+            <div
+              onClick={onFollowPresenter}
+              style={{
+                display: "flex", alignItems: "center", gap: 6,
+                padding: "6px 12px", borderRadius: 16,
+                background: "transparent",
+                border: `1px solid #e0e0e0`,
+                cursor: "pointer", userSelect: "none", transition: "all 0.2s",
+              }}
+            >
+              <Navigation size={14} color={C.charcoal} />
+              {!isMobile && <span style={{ fontSize: 11, fontWeight: 600, color: C.charcoal }}>Follow Presenter</span>}
+            </div>
+          )}
 
           {isPresenterUser && (
             <div
@@ -2319,12 +2335,23 @@ export default function App() {
   const [chatUnread, setChatUnread] = useState(0);
   const [chatMode, setChatMode] = useState("panel");
   const [showOutline, setShowOutline] = useState(true);
+  const presenterCursorRef = useRef(null);
   const squeezed = !isMobile && chatOpen && chatMode === "panel";
 
   const handleLogin = (name) => {
     setUserName(name);
     try { sessionStorage.setItem("defense_user", name); } catch {}
   };
+
+  const handlePresenterCursorChange = useCallback((cursor) => {
+    presenterCursorRef.current = cursor;
+  }, []);
+
+  const handleFollowPresenter = useCallback(() => {
+    const cursor = presenterCursorRef.current;
+    if (!cursor) return;
+    window.scrollTo({ top: Math.max(0, cursor.y - window.innerHeight / 3), behavior: "smooth" });
+  }, []);
 
   useEffect(() => {
     const observer = new IntersectionObserver((entries) => {
@@ -2343,7 +2370,7 @@ export default function App() {
 
   return (
     <div style={{ fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif", background: "#fff", color: "#1a1a2e", position: "relative" }}>
-      <Presence userName={userName} activeSection={activeSection} showRemoteCursors={showRemoteCursors} />
+      <Presence userName={userName} activeSection={activeSection} showRemoteCursors={showRemoteCursors} onPresenterCursorChange={handlePresenterCursorChange} />
       {showOutline && <OutlineSidebar sections={SECTIONS} activeId={activeSection} onNav={scrollTo} />}
       <div style={{
         marginRight: squeezed ? PANEL_WIDTH : 0,
@@ -2359,6 +2386,7 @@ export default function App() {
         chatUnread={chatUnread}
         showOutline={showOutline}
         onToggleOutline={() => setShowOutline(prev => !prev)}
+        onFollowPresenter={handleFollowPresenter}
       />
 
       <TitleSlide />

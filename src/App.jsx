@@ -164,7 +164,7 @@ function TopBar({ isPresenterUser, showRemoteCursors, onToggleCursors, chatOpen,
             }}
           >
             <MessageSquare size={14} color={C.charcoal} />
-            {!isMobile && <span style={{ fontSize: 11, fontWeight: 600, color: C.charcoal }}>Q&A</span>}
+            {!isMobile && <span style={{ fontSize: 11, fontWeight: 600, color: C.charcoal }}>chat room</span>}
             {chatUnread > 0 && (
               <div style={{
                 position: "absolute", top: -4, right: -4,
@@ -663,7 +663,7 @@ function OverviewCard({ item, onClick }) {
       <div style={{ fontSize: 12, color: "#555" }}>{item.domain}</div>
       <div style={{ fontSize: 11, color: "#999", marginTop: 4 }}>{item.users}</div>
       <div style={{ marginTop: 10, paddingTop: 10, borderTop: `1px solid ${item.color}20` }}>
-        <div style={{ fontSize: 12, fontWeight: 600, color: item.color, marginBottom: 4 }}>Key Thesis Contribution</div>
+        <div style={{ fontSize: 12, fontWeight: 600, color: item.color, marginBottom: 4 }}>Key takeaway</div>
         <div style={{ fontSize: 12, color: "#333", lineHeight: 1.6, fontStyle: "italic" }}>{item.thesis}</div>
         <div style={{ display: "flex", gap: 6, marginTop: 8 }}>
           {links.site && <LinkBtn href={links.site} color={item.color}><ExternalLink size={11} /> Project</LinkBtn>}
@@ -680,7 +680,7 @@ function ThesisOverview() {
     { id: "mimosa", name: "MIMOSA", color: C.mimosa, venue: "", domain: "Spatial Audio for Videos", users: "Amateur video creators",
       thesis: "Decomposing opaque pipelines enables error detection, repair, and creative augmentation without prior expertise." },
     { id: "spica", name: "SPICA", color: C.spica, venue: "", domain: "Video Access for BLV Users", users: "Blind or low-vision viewers",
-      thesis: "Restructuring accessibility from passive description to active multi-granularity exploration improves comprehension and engagement." },
+      thesis: "Restructuring audio descriptions from passive description to active multi-granularity exploration improves comprehension and engagement." },
     { id: "aroma", name: "AROMA", color: C.aroma, venue: "", domain: "Non-Visual Cooking Assistance", users: "Blind or low-vision cooks",
       thesis: "Most effective support occurs when the system validates and extends users' own embodied perceptual inferences." },
     { id: "transmog", name: "TRANSMOGRIFIER", color: C.transmog, venue: "", domain: "Knowledge Work", users: "Professional knowledge workers",
@@ -736,10 +736,10 @@ function MimosaSlides() {
           <div style={{ display: "flex", gap: 12, marginBottom: 28, flexWrap: "wrap" }}>
             <StatCard label="PARTICIPANTS" value="15" sub="in-lab usability study" color={C.mimosa} />
             <StatCard label="EVALUATORS" value="8" sub="subjective quality eval" color={C.mimosa} />
-            <StatCard label="USEFULNESS" value="6.47/7" sub="σ = 0.52" color={C.mimosa} />
+            {/* <StatCard label="REALISM" value="6.47/7" sub="σ = 0.52" color={C.mimosa} /> */}
             <StatCard label="IMMERSION" value="6.03/7" sub="user-generated audio" color={C.mimosa} />
           </div>
-          <Figure src="/figures/mimosa.png" caption="MIMOSA: System overview — decomposed pipeline with user-in-the-loop editing" />
+          <Figure src="/figures/mimosa.png" caption="MIMOSA system interface: 2D overlay (left), 3D manipulation (center), audio controls (right)" />
           <div style={{ marginTop: 20 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: C.charcoal, marginBottom: 10 }}>Design Goals</div>
             {[
@@ -785,13 +785,13 @@ function MimosaSlides() {
               </div>
             ))}
           </div>
-          <Figure src="/figures/mimosa.png" caption="MIMOSA system interface: 2D overlay (left), 3D manipulation (center), audio controls (right)" />
+          <Figure src="/figures/mimosa-ml-pipeline.png" caption="MIMOSA: ML pipeline overview — decomposed ML pipeline with user-in-the-loop editing" />
       </div>
 
       <div style={{ height: 1, background: "#e8e8e8", margin: "32px 0" }} />
 
       <div id="mimosa-results" style={{ scrollMarginTop: 140 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.charcoal, marginBottom: 16 }}>Technical Evaluation: Immersion & Realism (8 evaluators, 6 videos, 7-point scale)</div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.charcoal, marginBottom: 16 }}>Evaluation: Immersion & Realism (8 evaluators, 6 videos, 7-point scale)</div>
           <Figure src="/figures/mimosa-barchart.png" caption="User-generated audio (UA) significantly outperforms all baselines in immersion (p < 0.001)" maxW={700} />
           <div style={{ display: "flex", gap: 8, marginBottom: 28, flexWrap: "wrap", marginTop: 16 }}>
             {[
@@ -863,6 +863,20 @@ function MimosaSlides() {
             <ParticipantQuote text="Aligning the dots and the sounding objects in the video frame cost nearly no labor, so I felt really excited playing around with different settings" who="P11 — on creative exploration" color={C.mimosa} />
             <ParticipantQuote text="When I moved the Saxophone to my back, the sound was actually coming from that position" who="P3 — on spatial immersion" color={C.mimosa} />
           </div>
+          <div style={{ marginTop: 16, padding: 16, borderRadius: 10, background: `${C.mimosa}06`, border: `1px solid ${C.mimosa}20` }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: C.mimosa, marginBottom: 6 }}>Key Conclusion</div>
+            <div style={{ fontSize: 13, color: "#333", lineHeight: 1.7, fontStyle: "italic" }}>
+              Decomposing opaque AI pipelines into interpretable, editable stages lets users detect errors through visual cues, repair them, and creatively augment outputs — without requiring prior video/audio editing expertise.
+            </div>
+          </div>
+
+          <div style={{ height: 1, background: "#e8e8e8", margin: "32px 0" }} />
+
+          <div style={{ fontSize: 15, fontWeight: 700, color: C.mimosa, marginBottom: 12 }}>MIMOSA with Professional Editing Tools</div>
+          <video controls style={{ width: "100%", maxWidth: 900, borderRadius: 8, border: "1px solid #eee" }}>
+            <source src="/videos/mimosa_pr.mp4" type="video/mp4" />
+          </video>
+
       </div>
     </div>
   );
@@ -885,8 +899,8 @@ function SpicaSlides() {
 
       <div id="spica-overview" style={{ scrollMarginTop: 140 }}>
           <div style={{ fontSize: 14, color: "#444", lineHeight: 1.8, marginBottom: 24, maxWidth: 800 }}>
-            Video is essential for information, entertainment, and learning&mdash;yet it remains largely inaccessible to the
-            2.2 billion people with visual impairments worldwide. Traditional audio descriptions (ADs) are passive and
+            Video is essential for information, entertainment, and learning&mdash;yet it remains largely inaccessible to 
+            people with visual impairments worldwide. Traditional audio descriptions (ADs) are passive and
             one-size-fits-all: they emphasize only key moments, force BLV users to parse narration and soundtrack simultaneously,
             and often lead to disengagement during prolonged listening. <strong>SPICA transforms video accessibility from passive
             consumption to active exploration</strong>&mdash;providing layered, multi-granularity access: frame-level captions
@@ -990,24 +1004,29 @@ function SpicaSlides() {
       </div>
 
       <div style={{ height: 1, background: "#e8e8e8", margin: "32px 0" }} />
-
+      <Figure src="/figures/spica-pause.png" caption="Exploration behavior patterns: when and how BLV users explore video content" maxW={700} />
       <div id="spica-findings" style={{ scrollMarginTop: 140 }}>
           {[
             { title: "F1: Audio descriptions anchor active exploration", detail: "61.4% of active frame explorations occurred within ±5 seconds of original ADs. P10: 'I watch video with ADs every day — those are frames worth exploring, given I have the power to do so.' Native ADs serve as importance signals that invite deeper investigation, not endpoints." },
             { title: "F2: Pausing serves three distinct cognitive purposes", detail: "Reflecting: digesting complex multi-event scenes (P4). Validating: checking adjacent frames to confirm narrative coherence — P9: 'What happened before they hugged? Did they have any eye contact?' Customizing: fast-forwarding past unengaging content to focus on personally relevant scenes (P3)." },
             { title: "F3: Users detect AI errors through cross-modal reasoning", detail: "P5 noticed a frame described two people but only one voice was heard. By checking neighboring frames (which showed one person), P5 concluded: 'I was deterministic enough to say the description was wrong.' P13 rejected 'accordion' in a kitchen scene, reasoning it was likely a cutting board." },
-            { title: "F4: Sound triggers spatial curiosity", detail: "14.9% of object explorations followed new sounds. P5: 'When I heard the car engine, I wanted to know where that car was.' P4: 'When I heard noisy conversations, I wanted to know what they were doing.' P1: 'I'm always curious to know what clothes people are wearing.' Sound serves as a spatial invitation to explore." },
+            { title: "F4: Sound triggers spatial curiosity", detail: "14.9% of object explorations followed new sounds. P5: 'When I heard the car engine, I wanted to know where that car was.' P4: 'When I heard noisy conversations, I wanted to know what they were doing.' P1: '(When a new person joined the conversation) I'm always curious to know what clothes people are wearing.' Sound serves as a spatial invitation to explore." },
           ].map((f, i) => (
             <div key={i} style={{ padding: "14px 18px", borderRadius: 10, border: "1px solid #eee", marginBottom: 10, background: "#fafafa" }}>
               <div style={{ fontSize: 13, fontWeight: 700, color: C.spica, marginBottom: 4 }}>{f.title}</div>
               <div style={{ fontSize: 12, color: "#555", lineHeight: 1.6 }}>{f.detail}</div>
             </div>
           ))}
-          <Figure src="/figures/spica-pause.png" caption="Exploration behavior patterns: when and how BLV users explore video content" maxW={700} />
           <ParticipantQuote text="Exploring using my fingers augments my perception towards the relative positions of different objects" who="P10 — on touch-based spatial exploration" color={C.spica} />
           <ParticipantQuote text="I like when I touched a point at the screen and a spatial sound just coming from that direction...I felt it connected me with the scene in the video" who="P11 — on multimodal immersion" color={C.spica} />
           <ParticipantQuote text="The detailed information could fill in gaps that traditional audio descriptions miss, offering a richer viewing experience" who="P6 — on layered exploration" color={C.spica} />
           <ParticipantQuote text="Once it took all the color of the other objects away, it was a lot easier to find what I want" who="P14 — on color overlay for residual vision" color={C.spica} />
+          <div style={{ marginTop: 16, padding: 16, borderRadius: 10, background: `${C.spica}06`, border: `1px solid ${C.spica}20` }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: C.spica, marginBottom: 6 }}>Key Conclusion</div>
+            <div style={{ fontSize: 13, color: "#333", lineHeight: 1.7, fontStyle: "italic" }}>
+              Restructuring audio descriptions from passive audio description into active, multi-granularity exploration significantly improves both comprehension and immersion for BLV users.
+            </div>
+          </div>
       </div>
     </div>
   );
@@ -1039,18 +1058,18 @@ function AromaSlides() {
             embodied expertise</strong>.
           </div>
           <div style={{ display: "flex", gap: 12, marginBottom: 28, flexWrap: "wrap" }}>
-            <StatCard label="BLV PARTICIPANTS" value="8" sub="each cooked in their own kitchen" color={C.aroma} />
-            <StatCard label="EVENT MAPPING" value="82%" sub="accuracy" color={C.aroma} />
+            <StatCard label="BLV PARTICIPANTS" value="8" sub="each cooked in their own kitchen or a prefered location" color={C.aroma} />
+            {/* <StatCard label="EVENT MAPPING" value="82%" sub="accuracy" color={C.aroma} /> */}
             <StatCard label="CONVERSATIONAL" value="6.13/7" sub="importance rating" color={C.aroma} />
-            <StatCard label="COMPENSATION" value="$50" sub="per participant" color={C.aroma} />
+            {/* <StatCard label="COMPENSATION" value="$50" sub="per participant" color={C.aroma} /> */}
           </div>
           <Figure src="/figures/aroma-teaser.png" caption="AROMA: BLV user cooking with wearable camera — system provides on-demand and proactive assistance" />
           <div style={{ marginTop: 20 }}>
             <div style={{ fontSize: 13, fontWeight: 700, color: C.charcoal, marginBottom: 10 }}>Design Goals</div>
             {[
-              ["DG1", "Mixed-initiative support — respond to voice queries while proactively monitoring for deviations via wearable camera analyzing the scene every 2 seconds"],
-              ["DG2", "Bridge embodied perception and video knowledge — fuse the user's non-visual cues (texture, aroma, sound) with AI visual analysis and structured recipe content"],
-              ["DG3", "Flexible recipe interaction — conversational access to steps, ingredients, and techniques without rewinding; supports follow-up questions and spatial workspace queries"],
+              ["DG1", "Flexible recipe interaction — conversational access to steps, ingredients, and techniques without rewinding; supports follow-up questions and spatial workspace queries"],
+              ["DG2", "Mixed-initiative support — respond to voice queries while proactively monitoring for deviations via wearable camera analyzing the scene every 2 seconds"],
+              ["DG3", "Bridge embodied perception and video knowledge — fuse the user's non-visual cues (texture, aroma, sound) with AI visual analysis and structured recipe content"],
             ].map(([dg, desc]) => (
               <div key={dg} style={{ display: "flex", gap: 10, marginBottom: 8, alignItems: "flex-start" }}>
                 <span style={{ fontSize: 11, fontWeight: 700, color: C.aroma, background: `${C.aroma}12`, padding: "2px 8px", borderRadius: 4, whiteSpace: "nowrap" }}>{dg}</span>
@@ -1077,7 +1096,8 @@ function AromaSlides() {
               </div>
             ))}
           </div>
-          <Figure src="/figures/aroma-state-machine.png" caption="Response State Machine: 6 states governing interaction flow — food state, step, problem-solving, general, follow-ups" maxW={700} />
+          <div style={{ fontSize: 15, fontWeight: 700, marginBottom: 12, marginTop: 24 }}>6 States Governing Interaction Flow — Food State, Step, Problem-Solving, General, Follow-Ups</div>
+          <Figure src="/figures/aroma-state-machine.png" caption="Response State Machine" maxW={700} />
       </div>
 
       <div style={{ height: 1, background: "#e8e8e8", margin: "32px 0" }} />
@@ -1147,8 +1167,7 @@ function AromaSlides() {
           <div style={{ marginTop: 16, padding: 16, borderRadius: 10, background: `${C.aroma}06`, border: `1px solid ${C.aroma}20` }}>
             <div style={{ fontSize: 12, fontWeight: 700, color: C.aroma, marginBottom: 6 }}>Key Conclusion</div>
             <div style={{ fontSize: 13, color: "#333", lineHeight: 1.7, fontStyle: "italic" }}>
-              Rather than replacing tactile, auditory, olfactory, and gustatory skills, AROMA acts as a complementary scaffold
-              that enhances these well-practiced abilities. The most effective support validates and extends users&rsquo; own embodied perceptual inferences.
+              AROMA acts as a complementary scaffold that enhances BLV users' well-practiced abilities. The most effective support validates and extends users&rsquo; own embodied perceptual inferences.
             </div>
           </div>
       </div>
@@ -1160,7 +1179,7 @@ function AromaSlides() {
    POC CAROUSEL (TRANSMOGRIFIER)
    ═══════════════════════════════════════════════════════════════ */
 const POC_ITEMS = [
-  { title: "Crystallizer", img: "/figures/transmogrifier-poc-crystallizer.png", desc: "Organize unstructured meeting notes into multiple representational forms" },
+  { title: "Crystallizer", img: "/figures/transmogrifier-poc-crystallizer.png", desc: "Organize unstructured notes into multiple representational forms" },
   { title: "Perspective", img: "/figures/transmogrifier-poc-perspective.png", desc: "View the same data from multiple perspectives simultaneously" },
   { title: "Story Shaper", img: "/figures/transmogrifier-poc-storyshaper.png", desc: "Shape narratives across text, images, and charts" },
   { title: "Living TLDR", img: "/figures/transmogrifier-poc-tldr.png", desc: "Auto-updating summaries that stay in sync with source" },
@@ -1318,9 +1337,8 @@ function TransmogrifierSlides() {
             data tables turn into charts&mdash;yet maintaining coherence across these representations is manual, error-prone,
             and cognitively demanding. A single number change in a report can invalidate charts, summaries, and illustrations
             simultaneously. <strong>TRANSMOGRIFIER introduces <em>interpretive linking</em></strong>&mdash;extending
-            brushing-and-linking from information visualization to heterogeneous knowledge artifacts. Unlike traditional linking
-            (which requires stable identifiers), interpretive linking uses generative AI to detect semantic correspondences,
-            propagate changes, and maintain coherence&mdash;keeping every transformation <strong>inspectable and reversible</strong>.
+            brushing-and-linking from information visualization to heterogeneous knowledge artifacts. Interpretive linking uses generative AI to detect semantic correspondences,
+            propagate changes, and maintain coherence&mdash;keeping every transformation <strong>interpretable and reversible</strong>.
           </div>
           <div style={{ display: "flex", gap: 12, marginBottom: 28, flexWrap: "wrap" }}>
             <StatCard label="PROFESSIONALS" value="6" sub="probe-to-prototype study" color={C.transmog} />
@@ -1334,23 +1352,8 @@ function TransmogrifierSlides() {
       <div style={{ height: 1, background: "#e8e8e8", margin: "32px 0" }} />
 
       <div id="transmog-design" style={{ scrollMarginTop: 140 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.charcoal, marginBottom: 16 }}>Three Design Strategies</div>
-          {[
-            { ds: "DS1", title: "Meta-descriptions as soft constraints", desc: "Each content block has a free-form meta-description (e.g., 'bullet points for presentation') that guides how content should be transformed into that representation.", color: C.transmog },
-            { ds: "DS2", title: "Version history for minimal change", desc: "System preserves intent by updating only semantically corresponding portions. Version history ensures changes are minimal and traceable.", color: C.transmog },
-            { ds: "DS3", title: "Visual traceability", desc: "Bold/struck-through text, highlighted image regions, and brushing interactions reveal relationships between linked representations.", color: C.transmog },
-          ].map(s => (
-            <div key={s.ds} style={{ padding: 18, borderRadius: 10, border: `1px solid ${s.color}30`, background: `${s.color}04`, marginBottom: 10 }}>
-              <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6 }}>
-                <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", background: s.color, padding: "2px 10px", borderRadius: 4 }}>{s.ds}</span>
-                <span style={{ fontSize: 13, fontWeight: 700, color: C.charcoal }}>{s.title}</span>
-              </div>
-              <div style={{ fontSize: 12, color: "#555", lineHeight: 1.6 }}>{s.desc}</div>
-            </div>
-          ))}
-          <Figure src="/figures/transmogrifier-txt-img.png" caption="Text-to-image propagation: segmentation + inpainting avoids unintended visual changes" maxW={700} />
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.charcoal, marginBottom: 12, marginTop: 24 }}>Transformation Pipelines</div>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.charcoal, marginBottom: 12 }}>Transformation Pipelines</div>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap", marginBottom: 24 }}>
             {[
               { title: "Text → Text/Chart", desc: "LLM incorporates source content, target meta-description, version history. Generates HTML for charts." },
               { title: "Text → Image", desc: "Controlled pipeline: analyze style → generate prompt → segment referenced object → inpaint new object." },
@@ -1362,21 +1365,23 @@ function TransmogrifierSlides() {
               </div>
             ))}
           </div>
-      </div>
-
-      <div style={{ height: 1, background: "#e8e8e8", margin: "32px 0" }} />
-
-      <div id="transmog-results" style={{ scrollMarginTop: 140 }}>
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.charcoal, marginBottom: 12 }}>Probe-to-Prototype Study: 6 Professionals, 22 Concepts</div>
-          <div style={{ fontSize: 12, color: "#555", lineHeight: 1.7, marginBottom: 20 }}>
-            Participants from diverse backgrounds (UX researcher, graphics designer, content designers, project manager, technical artist)
-            explored the technology probe over two sessions (60 min + 30 min reflection, 5-7 days apart) and proposed 22 workflow concepts.
-          </div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.charcoal, marginBottom: 16 }}>Three Key Components</div>
+          <Figure src="/figures/transmogrifier-pipeline.png" caption="TRANSMOGRIFIER: Cross-representation linking pipeline" maxW={450} />
+          {[
+            { ds: "1", title: "Meta-descriptions as soft constraints", desc: "Each content block has a free-form meta-description (e.g., 'bullet points for presentation') that guides how content should be transformed into that representation.", color: C.transmog },
+            { ds: "2", title: "Version history for minimal change", desc: "System preserves intent by updating only semantically corresponding portions. Version history ensures changes are minimal and traceable.", color: C.transmog },
+            { ds: "3", title: "Visual traceability", desc: "Bold/struck-through text, highlighted image regions, and brushing interactions reveal relationships between linked representations.", color: C.transmog },
+          ].map(s => (
+            <div key={s.ds} style={{ padding: 18, borderRadius: 10, border: `1px solid ${s.color}30`, background: `${s.color}04`, marginBottom: 10 }}>
+              <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 6 }}>
+                <span style={{ fontSize: 11, fontWeight: 700, color: "#fff", background: s.color, padding: "2px 10px", borderRadius: 4 }}>{s.ds}</span>
+                <span style={{ fontSize: 13, fontWeight: 700, color: C.charcoal }}>{s.title}</span>
+              </div>
+              <div style={{ fontSize: 12, color: "#555", lineHeight: 1.6 }}>{s.desc}</div>
+            </div>
+          ))}
+          <Figure src="/figures/transmogrifier-txt-img.png" caption="Text-to-image propagation: segmentation + inpainting avoids unintended visual changes" maxW={700} />
           <Figure src="/figures/transmogrifier-scenarios.png" caption="Selected proof-of-concept application scenarios proposed by participants" maxW={800} video="/videos/collaborative-demo.mp4" />
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.charcoal, marginBottom: 12, marginTop: 20 }}>Proof-of-Concept Applications</div>
-          <PocCarousel />
-
-          <div style={{ fontSize: 13, fontWeight: 700, color: C.charcoal, marginBottom: 12, marginTop: 28 }}>Demo: Explaining "Cat" with ASL and an Image</div>
           <div style={{ borderRadius: 10, border: "1px solid #e8e8e8", overflow: "hidden", background: "#fafafa" }}>
             <video
               src="/videos/a11y.mp4"
@@ -1395,11 +1400,23 @@ function TransmogrifierSlides() {
 
       <div style={{ height: 1, background: "#e8e8e8", margin: "32px 0" }} />
 
+      <div id="transmog-results" style={{ scrollMarginTop: 140 }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.charcoal, marginBottom: 12 }}>Probe-to-Prototype Study: 6 Professionals, 22 Concepts</div>
+          <div style={{ fontSize: 12, color: "#555", lineHeight: 1.7, marginBottom: 20 }}>
+            Participants from diverse backgrounds (UX researcher, graphics designer, content designers, project manager, technical artist)
+            explored the technology probe over two sessions (60 min + 30 min reflection, 5-7 days apart) and proposed 22 workflow concepts.
+          </div>
+          <div style={{ fontSize: 13, fontWeight: 700, color: C.charcoal, marginBottom: 12, marginTop: 20 }}>Proof-of-Concept Applications</div>
+          <PocCarousel />
+      </div>
+
+      <div style={{ height: 1, background: "#e8e8e8", margin: "32px 0" }} />
+
       <div id="transmog-findings" style={{ scrollMarginTop: 140 }}>
           {[
-            { title: "Value concentrates in hard, cascading changes", detail: "P5: 'Nothing worse than when a number on a slide doesn't match the chart.' Most compelling use cases: maintaining cross-document number consistency, adapting content across audiences, propagating visual changes through illustration series — tasks that are hours of manual work and error-prone." },
+            { title: "Value concentrates in hard, cascading changes", detail: "Most compelling use cases: maintaining cross-document number consistency, adapting content across audiences, propagating visual changes through illustration series — tasks that are hours of manual work and error-prone." },
             { title: "Bidirectional editing enables representation-native thinking", detail: "P4: 'Edit right away and focus on the content, not on how to talk to the system.' Users edited in whatever form fit the task — text, chart, or image — and the system maintained coherence. P5: 'You could see many different ways of seeing the same information.'" },
-            { title: "A fundamentally new AI interaction paradigm", detail: "Unlike chat-based AI where users craft prompts, interpretive linking embeds AI into the creative workflow itself. Users work through representations rather than on documents — editing any representation implicitly edits the underlying semantic substrate. P3 described it as having an 'AI collaborator.'" },
+            { title: "A new AI interaction paradigm", detail: "Unlike chat-based AI where users craft prompts, interpretive linking embeds AI into the creative workflow itself. Users work through representations rather than on documents — editing any representation implicitly edits the underlying semantic substrate. P3 described it as having an 'AI collaborator.'" },
             { title: "Trust hinges on inspectability and reversibility", detail: "Even rare failures massively erode confidence. Participants demanded explicit accept/reject controls, change tracking (bold/strikethrough), and version history for every propagated change. P6 stressed 'grounding generated content in selected source materials and tracking provenance.'" },
           ].map((f, i) => (
             <div key={i} style={{ padding: "14px 18px", borderRadius: 10, border: "1px solid #eee", marginBottom: 10, background: "#fafafa" }}>
@@ -1410,7 +1427,12 @@ function TransmogrifierSlides() {
           <ParticipantQuote text="You could see many different ways of seeing the same information. That was really cool" who="P5 — on representational flexibility" color={C.transmog} />
           <ParticipantQuote text="Seeing text brought to life — especially valuable when creating alternatives would otherwise require substantial manual effort" who="P1 — on cross-modal transformation" color={C.transmog} />
           <ParticipantQuote text="Pretty unique... and super valuable — the ability to edit content across any representation and propagate changes" who="P4 — on bidirectional editing" color={C.transmog} />
-          <ParticipantQuote text="Nothing worse than when a number on a slide doesn't match the chart" who="P5 — on cascading coherence" color={C.transmog} />
+          <div style={{ marginTop: 16, padding: 16, borderRadius: 10, background: `${C.transmog}06`, border: `1px solid ${C.transmog}20` }}>
+            <div style={{ fontSize: 12, fontWeight: 700, color: C.transmog, marginBottom: 6 }}>Key Conclusion</div>
+            <div style={{ fontSize: 13, color: "#333", lineHeight: 1.7, fontStyle: "italic" }}>
+              Generative AI can serve as a coordination mechanism across heterogeneous knowledge representations when every transformation remains inspectable, reversible, and semantically grounded.
+            </div>
+          </div>
       </div>
     </div>
   );
@@ -1433,6 +1455,40 @@ function BrainNervousSystem() {
 
   return (
     <div>
+      {/* Licklider 1960 Original Vision */}
+      <div style={{ marginBottom: 40 }}>
+        <div style={{ fontSize: 12, fontWeight: 700, color: "#999", letterSpacing: 2, marginBottom: 16 }}>LICKLIDER'S ORIGINAL VISION (1960)</div>
+        <div style={{ display: "flex", gap: 24, alignItems: "center", justifyContent: "center", flexWrap: "wrap", marginBottom: 16 }}>
+          <div style={{ width: 180, padding: 24, borderRadius: "50%", textAlign: "center", border: "2px dashed #bbb", background: "#f9f9f9" }}>
+            <div style={{ fontSize: 28 }}>🖥</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#888", marginTop: 6 }}>Computer</div>
+            <div style={{ fontSize: 10, color: "#aaa", marginTop: 4, lineHeight: 1.4 }}>Routine computation, data retrieval, simulation</div>
+          </div>
+          <div style={{ textAlign: "center" }}>
+            <svg width="100" height="40" viewBox="0 0 100 40">
+              <line x1="5" y1="20" x2="42" y2="20" stroke="#bbb" strokeWidth="1.5" strokeDasharray="4,3" />
+              <line x1="58" y1="20" x2="95" y2="20" stroke="#bbb" strokeWidth="1.5" strokeDasharray="4,3" />
+              <polygon points="42,15 52,20 42,25" fill="#bbb" />
+              <polygon points="58,15 48,20 58,25" fill="#bbb" />
+            </svg>
+            <div style={{ fontSize: 10, fontWeight: 600, color: "#aaa" }}>Tight Coupling</div>
+          </div>
+          <div style={{ width: 180, padding: 24, borderRadius: "50%", textAlign: "center", border: "2px dashed #bbb", background: "#f9f9f9" }}>
+            <div style={{ fontSize: 28 }}>👤</div>
+            <div style={{ fontSize: 13, fontWeight: 700, color: "#888", marginTop: 6 }}>Human</div>
+            <div style={{ fontSize: 10, color: "#aaa", marginTop: 4, lineHeight: 1.4 }}>Goal setting, hypothesis formation, evaluation</div>
+          </div>
+        </div>
+        <div style={{ maxWidth: 700, margin: "0 auto", padding: "14px 20px", background: "#f8f8f8", borderRadius: 8, border: "1px solid #e8e8e8" }}>
+          <div style={{ fontSize: 12, color: "#777", lineHeight: 1.7, textAlign: "center", fontStyle: "italic" }}>
+            &ldquo;Men will set the goals, formulate the hypotheses, determine the criteria, and perform the evaluations. Computing machines will do the routinizable work that must be done to prepare the way for insights and decisions.&rdquo;
+          </div>
+          <div style={{ fontSize: 11, color: "#aaa", textAlign: "center", marginTop: 6 }}>— J.C.R. Licklider, &ldquo;Man-Computer Symbiosis,&rdquo;, 1960</div>
+        </div>
+      </div>
+
+      {/* Reinterpreted for GenAI Era */}
+      <div style={{ fontSize: 12, fontWeight: 700, color: "#999", letterSpacing: 2, marginBottom: 16 }}>REINTERPRETED FOR THE GENERATIVE AI ERA</div>
       <div style={{ display: "flex", gap: 24, alignItems: "center", justifyContent: "center", flexWrap: "wrap", marginBottom: 32 }}>
         {/* AI Brain */}
         <div style={{ width: 200, padding: 28, borderRadius: "50%", textAlign: "center", border: "2px solid #e0e0e0", background: "#fafafa" }}>
@@ -1479,9 +1535,9 @@ function BrainNervousSystem() {
             The user&rsquo;s ongoing perception, domain expertise, and contextual awareness function as continuous alignment
             signals that compensate where models fall short.
           </div>
-          <div style={{ fontWeight: 600, fontSize: 13, color: C.charcoal, textAlign: "center" }}>
+          {/* <div style={{ fontWeight: 600, fontSize: 13, color: C.charcoal, textAlign: "center" }}>
             The practical implication: shift from optimizing model autonomy &rarr; optimizing <strong style={{ color: C.mimosa }}>the quality of human-AI coupling</strong>
-          </div>
+          </div> */}
         </div>
       </div>
     </div>
@@ -1502,7 +1558,7 @@ function TwoAxesPlot() {
       subtitle: "Evaluate Technical Feasibility & Scalability",
       question: "Can the system do it?",
       aspects: [
-        "Automated benchmarks on standard datasets (precision, recall, BLEU)",
+        "Automated benchmarks on standard datasets (precision, recall)",
         "Robustness and generalizability across diverse inputs",
         "Latency, cost, and computational scalability",
         "Model capability: what AI can perceive, reason, and generate",
@@ -1520,7 +1576,7 @@ function TwoAxesPlot() {
         "Trust calibration, sense of agency, error recoverability",
         "Bottom-up benchmarks starting from situated use cases",
       ],
-      detail: <>Current benchmarks (MMLU, HumanEval, Chatbot Arena) measure model output statistically but omit subjective experience. Evaluation must start from situated use: the cook who must judge doneness before food burns, the viewer following a plot across scene transitions. Metrics should capture cognitive load, trust calibration, and mental model coherence at the point of use.</>,
+      detail: <>Current benchmarks (MMLU, HumanEval, Chatbot Arena) measure model output statistically but omit personalized experience. Evaluation must start from situated use: the cook who must judge doneness before food burns, the viewer following a plot across scene transitions. Metrics should capture cognitive load, trust, and mental model coherence at the point of use.</>,
     },
   ];
 
@@ -1581,16 +1637,16 @@ function TwoAxesPlot() {
           </svg>
         </div>
         <div style={{ fontSize: 13, fontWeight: 600, color: C.charcoal, textAlign: "center", marginBottom: 6 }}>
-          User-facing quality diverged from data-facing quality &mdash; optimizing one does not guarantee the other
+          Building effective human-AI systems requires progress along <strong>both</strong> axes
         </div>
-        <div style={{ fontSize: 11, color: "#777", textAlign: "center", lineHeight: 1.6, maxWidth: 620, margin: "0 auto" }}>
+        {/* <div style={{ fontSize: 11, color: "#777", textAlign: "center", lineHeight: 1.6, maxWidth: 620, margin: "0 auto" }}>
           Building effective human-AI systems requires progress along <strong>both</strong> axes:
           data-driven methods validate what the technology can achieve,
           while human-centered methods ensure that achievement translates into real benefit at the point of use.
-        </div>
-        <div style={{ fontSize: 10, color: "#999", fontStyle: "italic", paddingTop: 10, marginTop: 10, borderTop: "1px solid #eee", textAlign: "center" }}>
+        </div> */}
+        {/* <div style={{ fontSize: 10, color: "#999", fontStyle: "italic", paddingTop: 10, marginTop: 10, borderTop: "1px solid #eee", textAlign: "center" }}>
           Grounded in: Gibson (ecological affordances) &middot; Sweller (cognitive load) &middot; Dual coding theory &middot; Norman (gulfs of execution/evaluation)
-        </div>
+        </div> */}
       </div>
     </div>
   );
@@ -1605,7 +1661,7 @@ function OverarchingFlow() {
       systems: ["mimosa", "spica", "aroma", "transmog"],
       implications: [
         "Expose intermediate AI results as inspectable, editable elements — MIMOSA shows pipeline stages; TRANSMOGRIFIER shows change diffs with bold/strikethrough",
-        "Support error discovery through cross-modal verification — MIMOSA uses visual dots for audio errors; SPICA lets users cross-check descriptions against audio context",
+        "Support error discovery through cross-modal verification — MIMOSA uses visual dots for audio errors; AROMS lets users ask follow-ups against the on-going session",
         "Error-handling cannot be modality-agnostic — it must account for the perceptual affordances of each output channel (visual, auditory, tactile)",
       ],
       nlqEvidence: {
@@ -1619,7 +1675,7 @@ function OverarchingFlow() {
     { id: "cognitive", label: "Cognitive Load", color: C.orange, Icon: Brain,
       systems: ["mimosa", "spica", "aroma", "transmog"],
       implications: [
-        "Coordinate channels to reduce mental effort — MIMOSA visualizes audio positions on video; SPICA layers information by temporal then spatial granularity",
+        "Coordinate channels to reduce mental effort — MIMOSA visualizes audio positions on video; SPICA layers information by temporal then spatial granularity and allow both key-board and touch exploration.",
         "Proactive coordination in high-stakes tasks — AROMA monitors cooking state and alerts before errors become irreversible (e.g., miso before tofu)",
         "Quality of cognition depends on coordination quality among representations — TRANSMOGRIFIER's semantic substrate maintains coherence as attention shifts",
       ],
@@ -1636,7 +1692,7 @@ function OverarchingFlow() {
       implications: [
         "Adapt to user's preferred sensory channels — SPICA offers touch, keyboard, spatial audio, and color overlays for different visual conditions",
         "Leverage embodied expertise as an alignment signal — AROMA's blind chef validates AI through touch and spatial memory rather than deferring to vision",
-        "Multiple interaction strategies at varying precision — MIMOSA offers 2D dragging, 3D manipulation, and numerical input; TRANSMOGRIFIER supports text, chart, and image editing",
+        "Multiple interaction strategies at varying precision — TRANSMOGRIFIER supports text, chart, and image transformation, and allows multi-user collaboration",
       ],
       nlqEvidence: {
         finding: "Effectiveness of error-handling strategies varies by user expertise, with no one-size-fits-all solution",
@@ -1651,7 +1707,7 @@ function OverarchingFlow() {
     { id: "mimosa", name: "MIMOSA", color: C.mimosa },
     { id: "spica", name: "SPICA", color: C.spica },
     { id: "aroma", name: "AROMA", color: C.aroma },
-    { id: "transmog", name: "TRANSMOG.", color: C.transmog },
+    { id: "transmog", name: "TRANSMOGRIFIER", color: C.transmog },
   ];
   return (
     <div>
@@ -1701,7 +1757,7 @@ function OverarchingFlow() {
       </div>
 
       {/* ── Empirical Grounding: NLQ Study ── */}
-      <NLQEvidencePanel challenges={challenges} />
+      {/* <NLQEvidencePanel challenges={challenges} /> */}
     </div>
   );
 }
@@ -1918,28 +1974,90 @@ function NLQEvidencePanel({ challenges }) {
 /* ═══════════════════════════════════════════════════════════════
    SLIDE 22: CONCLUSION
    ═══════════════════════════════════════════════════════════════ */
+const CONCLUSION_ITEMS = [
+  { name: "MIMOSA", color: C.mimosa, conclusion: "Decomposing opaque AI pipelines into interpretable, editable stages lets users detect errors through visual cues, repair them, and creatively augment outputs — without requiring prior audio/video editing expertise." },
+  { name: "SPICA", color: C.spica, conclusion: "Restructuring audio descriptions from passive audio description into active, multi-granularity exploration significantly improves both comprehension (+1.32) and immersion (+1.96) for BLV users." },
+  { name: "AROMA", color: C.aroma, conclusion: "The most effective support occurs when the system co-reasons with users' embodied perceptual expertise rather than substituting for it — validating and extending, not replacing." },
+  { name: "TRANSMOGRIFIER", color: C.transmog, conclusion: "Generative AI can serve as a coordination mechanism across heterogeneous knowledge representations when every transformation remains inspectable, reversible, and semantically grounded." },
+  { name: "NL2SQL STUDY", color: "#7c6bc4", conclusion: "A 48-type error taxonomy across 4 NL2SQL models and user study with three error-handling strategies provide independent empirical evidence for the design principles of error transparency and user verification." },
+];
+
 function ConclusionSlide() {
+  const scrollRef = useRef(null);
+  const [canScrollL, setCanScrollL] = useState(false);
+  const [canScrollR, setCanScrollR] = useState(true);
+
+  const updateEdges = useCallback(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    setCanScrollL(el.scrollLeft > 2);
+    setCanScrollR(el.scrollLeft < el.scrollWidth - el.clientWidth - 2);
+  }, []);
+
+  useEffect(() => {
+    const el = scrollRef.current;
+    if (!el) return;
+    updateEdges();
+    el.addEventListener("scroll", updateEdges, { passive: true });
+    window.addEventListener("resize", updateEdges);
+    return () => {
+      el.removeEventListener("scroll", updateEdges);
+      window.removeEventListener("resize", updateEdges);
+    };
+  }, [updateEdges]);
+
+  const scroll = useCallback((dir) => {
+    const el = scrollRef.current;
+    if (!el) return;
+    el.scrollBy({ left: dir * 260, behavior: "smooth" });
+  }, []);
+
+  const CARD_W = 240;
+
   return (
     <div>
-      <div style={{ fontSize: 14, color: "#444", lineHeight: 1.8, marginBottom: 28, maxWidth: 800 }}>
-        Cycling back to Licklider&rsquo;s 1960 vision of human-computer symbiosis: the classical framework remains valid,
-        yet demands reinterpretation in the generative AI era. This dissertation contributes four instantiations of the
-        <strong> multimodal coupling layer</strong> between AI capabilities and human cognition&mdash;each demonstrating that
-        the quality of the interface, not the autonomy of the model, determines whether powerful AI translates into
-        effective human augmentation.
-      </div>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(240px, 1fr))", gap: 12, marginBottom: 28 }}>
-        {[
-          { name: "MIMOSA", color: C.mimosa, conclusion: "Decomposing opaque AI pipelines into interpretable, editable stages lets users detect errors through visual cues, repair them, and creatively augment outputs — without requiring prior audio expertise." },
-          { name: "SPICA", color: C.spica, conclusion: "Restructuring video accessibility from passive audio description into active, multi-granularity exploration significantly improves both comprehension (+1.32) and immersion (+1.96) for BLV users." },
-          { name: "AROMA", color: C.aroma, conclusion: "The most effective support occurs when the system co-reasons with users' embodied perceptual expertise rather than substituting for it — validating and extending, not replacing." },
-          { name: "TRANSMOGRIFIER", color: C.transmog, conclusion: "Generative AI can serve as a coordination mechanism across heterogeneous knowledge representations when every transformation remains inspectable, reversible, and semantically grounded." },
-        ].map(s => (
-          <div key={s.name} style={{ padding: 18, borderRadius: 10, border: `1.5px solid ${s.color}30`, background: `${s.color}04` }}>
-            <div style={{ fontSize: 13, fontWeight: 700, color: s.color, marginBottom: 6 }}>{s.name}</div>
-            <div style={{ fontSize: 12, color: "#444", lineHeight: 1.6 }}>{s.conclusion}</div>
-          </div>
-        ))}
+      <div style={{ position: "relative" }}>
+        <div ref={scrollRef}
+          style={{
+            display: "flex", gap: 12, overflowX: "auto", scrollSnapType: "x mandatory",
+            WebkitOverflowScrolling: "touch", paddingBottom: 6,
+            scrollbarWidth: "none", msOverflowStyle: "none",
+          }}>
+          {CONCLUSION_ITEMS.map(s => (
+            <div key={s.name}
+              style={{
+                flex: `0 0 ${CARD_W}px`, width: CARD_W, scrollSnapAlign: "start",
+                padding: 18, borderRadius: 10, border: `1.5px solid ${s.color}30`, background: `${s.color}04`,
+                transition: "box-shadow .2s, transform .2s",
+              }}
+              onMouseEnter={e => { e.currentTarget.style.boxShadow = `0 4px 16px ${s.color}20`; e.currentTarget.style.transform = "translateY(-2px)"; }}
+              onMouseLeave={e => { e.currentTarget.style.boxShadow = "none"; e.currentTarget.style.transform = "none"; }}>
+              <div style={{ fontSize: 13, fontWeight: 700, color: s.color, marginBottom: 6 }}>{s.name}</div>
+              <div style={{ fontSize: 12, color: "#444", lineHeight: 1.6 }}>{s.conclusion}</div>
+            </div>
+          ))}
+        </div>
+
+        {canScrollL && (
+          <button onClick={() => scroll(-1)}
+            style={{ position: "absolute", left: -6, top: "50%", transform: "translateY(-50%)",
+              width: 30, height: 30, borderRadius: "50%", border: "none",
+              background: "rgba(0,0,0,.5)", color: "#fff", fontSize: 16,
+              cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 2px 8px rgba(0,0,0,.2)" }}>
+            ‹
+          </button>
+        )}
+        {canScrollR && (
+          <button onClick={() => scroll(1)}
+            style={{ position: "absolute", right: -6, top: "50%", transform: "translateY(-50%)",
+              width: 30, height: 30, borderRadius: "50%", border: "none",
+              background: "rgba(0,0,0,.5)", color: "#fff", fontSize: 16,
+              cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center",
+              boxShadow: "0 2px 8px rgba(0,0,0,.2)" }}>
+            ›
+          </button>
+        )}
       </div>
     </div>
   );
@@ -2005,7 +2123,6 @@ function AcknowledgmentCommitteeSlide() {
   return (
     <div>
       <div style={{ fontSize: isMobile ? 13 : 14, color: "#555", lineHeight: 1.7, marginBottom: 36, maxWidth: 700, textAlign: "center", margin: "0 auto 36px" }}>
-        I am deeply grateful to my advisor and committee members for their guidance, critical feedback, and continued support throughout this journey.
       </div>
       <div style={{ display: "flex", justifyContent: "center", gap: isMobile ? 20 : 48, flexWrap: "wrap" }}>
         {COMMITTEE.map(m => (
@@ -2036,7 +2153,6 @@ const COLLABORATORS = [
   { name: "JooYoung Seo", img: "/figures/portraits/jooyoung-seo.jpg", url: "https://ischool.illinois.edu/people/jooyoung-seo" },
   { name: "Kaiwen Jiang", img: "/figures/portraits/kaiwen-jiang.jpg", url: "https://scholar.google.com/citations?user=kHRmdjwAAAAJ" },
   { name: "Ken Hinckley", img: "/figures/portraits/ken-hinckley.jpg", url: "https://kenhinckley.wordpress.com/" },
-  { name: "Keyi Chen", img: "/figures/portraits/keyi-chen.png", url: "https://scholar.google.com/citations?user=lkH63CEAAAAJ" },
   { name: "Leyang Li", img: "/figures/portraits/leyang-li.webp", url: "https://leoreoreo.github.io/" },
   { name: "Lydia B. Chilton", img: "/figures/portraits/lydia-chilton.jpg", url: "https://www.cs.columbia.edu/~chilton/chilton.html" },
   { name: "Michel Pahud", img: "/figures/portraits/michel-pahud.png", url: "https://www.microsoft.com/en-us/research/people/mpahud/" },
@@ -2045,7 +2161,6 @@ const COLLABORATORS = [
   { name: "Nicolai Marquardt", img: "/figures/portraits/nicolai-marquardt.jpg", url: "http://www.nicolaimarquardt.com/" },
   { name: "Patrick Carrington", img: "/figures/portraits/patrick-carrington.jpg", url: "https://patrickcarrington.com/" },
   { name: "Sitong Wang", img: "/figures/portraits/sitong-wang.jpg", url: "https://sitong-wang.github.io/" },
-  { name: "Tianyi Sun", img: "/figures/portraits/tianyi-sun.jpg", url: "https://tianysun.github.io/aboutme/" },
   { name: "Tianyi Zhang", img: "/figures/portraits/tianyi-zhang.png", url: "https://tianyi-zhang.github.io/" },
   { name: "Yuan Tian", img: "/figures/portraits/yuan-tian.jpg", url: "https://yuan-tian.com/" },
   { name: "Yuhang Zhao", img: "/figures/portraits/yuhang-zhao.jpg", url: "https://www.yuhangz.com/" },
@@ -2057,7 +2172,6 @@ function AcknowledgmentCollaboratorsSlide() {
   return (
     <div>
       <div style={{ fontSize: isMobile ? 13 : 14, color: "#555", lineHeight: 1.7, marginBottom: 32, maxWidth: 700, textAlign: "center", margin: "0 auto 32px" }}>
-        I am fortunate to have worked with exceptional mentors and collaborators who brought complementary expertise and perspectives, and more importantly, cherished friendships that will last forever.
       </div>
       <div style={{
         display: "grid",
@@ -2090,6 +2204,7 @@ const ND_FRIENDS = [
   { name: "Ningzhi Tang", img: "/figures/portraits/ningzhi-tang.jpg", url: "https://www.nztang.com/" },
   { name: "Oghenemaro Anuyah", img: "/figures/portraits/oghenemaro-anuyah.png", url: "https://anuyahmaro.github.io/" },
   { name: "Ozioma Collins Oguine", img: "/figures/portraits/ozioma-oguine.jpg", url: "https://hci.nd.edu/people/graduate-students/ozioma-collins-oguine/" },
+  { name: "Si Chen", img: "/figures/portraits/si-chen.jpg", url: "https://learning.nd.edu/about/team-bios/si-chen/" },
   { name: "Simret Gebreegziabher", img: "/figures/portraits/simret-gebreegziabher.png", url: "https://simreta.github.io/" },
   { name: "Sumin Hong", img: "/figures/portraits/sumin-hong.jpg", url: "https://scholar.google.com/citations?user=gg-AUEsAAAAJ" },
   { name: "Shang Ma", img: "/figures/portraits/shang-ma.png", url: "http://shangma.org/" },
@@ -2104,7 +2219,6 @@ function AcknowledgmentFriendsSlide() {
   return (
     <div>
       <div style={{ fontSize: isMobile ? 13 : 14, color: "#555", lineHeight: 1.7, marginBottom: 32, maxWidth: 700, textAlign: "center", margin: "0 auto 32px" }}>
-        Thank you to all my best colleagues and friends at Notre Dame who made the doctoral journey both fruitful and enjoyable.
       </div>
       <div style={{
         display: "grid",
@@ -2134,13 +2248,9 @@ const SECTIONS = [
   { id: "spica", label: "SPICA", depth: 1, color: C.spica },
   { id: "aroma", label: "AROMA", depth: 1, color: C.aroma },
   { id: "transmog", label: "TRANSMOGRIFIER", depth: 1, color: C.transmog },
-  { id: "symbiosis", label: "Discussion", depth: 0 },
-  { id: "axes", label: "Future", depth: 0 },
-  { id: "principles", label: "Principles", depth: 0 },
-  { id: "conclusion", label: "Conclusion", depth: 0 },
-  { id: "ack-committee", label: "Committee", depth: 0 },
-  { id: "ack-collaborators", label: "Collaborators", depth: 0 },
-  { id: "ack-friends", label: "Friends", depth: 0 },
+  { id: "symbiosis", label: "Going Beyond", depth: 0 },
+  { id: "principles", label: "Conclusion", depth: 0 },
+  { id: "ack-committee", label: "Acknowledgments", depth: 0 },
 ];
 
 /* ═══════════════════════════════════════════════════════════════
@@ -2263,7 +2373,7 @@ export default function App() {
       </Section>
 
       <Section id="overview" label="Overview" title="Four Systems Across Diverse Domains"
-        subtitle="Each system addresses a different domain while tackling similar recurring challenges through different coupling strategies.">
+        subtitle="Each system addresses a different domain while tackling similar recurring challenges through different interactive strategies.">
         <ThesisOverview />
       </Section>
 
@@ -2287,24 +2397,23 @@ export default function App() {
         <TransmogrifierSlides />
       </Section>
 
-      <Section id="symbiosis" label="Discussion" title="Rethinking Human-AI Symbiosis"
+      <Section id="symbiosis" label="Going Beyond" title="Rethinking Man-Computer Symbiosis in the Era of GenAI"
         subtitle="Returning to Licklider's 1960 vision of human-computer symbiosis, reinterpreted for the generative AI era. Building symbiosis requires advancing not only the AI 'brain' but also the multimodal 'nervous system' — the coupling layer that connects AI capabilities with human cognition.">
         <BrainNervousSystem />
       </Section>
 
-      <Section id="axes" label="Future Directions" title="Towards New Symbiosis: Two Axes"
+      <Section id="axes" label="Moving Forward" title="Towards New Symbiosis: Two Axes"
         subtitle="Two key factors drive future human-AI coupling: richer data from internal thought traces, and human-centered evaluation grounded in situated use cases.">
         <TwoAxesPlot />
       </Section>
 
-      <Section id="principles" label="Overarching" title="Cross-Cutting Design Principles"
-        subtitle="Three recurring challenges drive four systems, which together produce generalizable design implications for human-centered AI.">
+      <Section id="principles" label="" title="Conclusion & Key Takeaways"
+        subtitle="Recurring challenges drive four systems for facilitating Human-AI interaction in multimodal workflows">
         <OverarchingFlow />
-      </Section>
-
-      <Section id="conclusion" label="Conclusion" title="Contribution">
+        <div style={{ height: 1, background: "#e8e8e8", margin: "32px 0" }} />
         <ConclusionSlide />
       </Section>
+
 
       <Section id="ack-committee" label="Acknowledgments" title="Dissertation Committee">
         <AcknowledgmentCommitteeSlide />
@@ -2314,7 +2423,7 @@ export default function App() {
         <AcknowledgmentCollaboratorsSlide />
       </Section>
 
-      <Section id="ack-friends" label="Acknowledgments" title="Friends at Notre Dame">
+      <Section id="ack-friends" label="Acknowledgments" title="Best Notre Dame Friends!">
         <AcknowledgmentFriendsSlide />
       </Section>
 
